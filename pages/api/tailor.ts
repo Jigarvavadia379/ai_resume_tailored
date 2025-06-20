@@ -15,8 +15,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .insert([{ original_resume: original, job_description: jd, tailored_resume: tailored }]);
 
     return res.status(200).json({ tailored });
-  } catch (error: any) {
-    console.error('Tailor API Error:', error.message);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Tailor API Error:', error.message);
+    } else {
+      console.error('Tailor API Unknown Error:', error);
+    }
     return res.status(500).json({ error: 'Failed to tailor resume' });
   }
 }
