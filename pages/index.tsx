@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import mammoth from 'mammoth';
-import pdfParse from 'pdf-parse';
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
 
 export default function Home() {
   const [resumeText, setResumeText] = useState('');
@@ -10,23 +10,42 @@ export default function Home() {
   const [tailored, setTailored] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    let text = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map((item: any) => item.str).join(' ') + '\n';
+    }
+
+    return text;
+  };
 
   const onDrop = async (acceptedFiles: File[]) => {
-      const file = acceptedFiles[0];
-      const ext = file.name.split('.').pop()?.toLowerCase();
+    const file = acceptedFiles[0];
+    const ext = file.name.split('.').pop()?.toLowerCase();
 
-      if (ext === 'pdf') {
-        const buffer = await file.arrayBuffer();
-        const data = await pdfParse(buffer);
-        setResumeText(data.text || '');
-      } else if (ext === 'docx') {
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer });
-        setResumeText(result.value || '');
-      } else {
-          alert("Unsupported file type. Please upload a PDF, DOCX, or TXT file.");
-      }
-    };
+    if (ext === 'pdf') {
+      const buffer = await file.arrayBuffer();
+      const text = await extractTextFromPDF(buffer);
+      setResumeText(text);
+    } else if (ext === 'docx') {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      setResumeText(result.value || '');
+    } else if (ext === 'txt') {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setResumeText(reader.result?.toString() || '');
+      };
+      reader.readAsText(file);
+    } else {
+      alert("Unsupported file type. Please upload a PDF, DOCX, or TXT file.");
+    }
+  };
 
   const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
     accept: {
@@ -38,10 +57,7 @@ export default function Home() {
     onDrop,
   });
 
-
-
   const handleScore = () => {
-    // Dummy score logic (real scoring to come later)
     const jdWords = jdText.split(/\s+/).filter(Boolean);
     const resumeWords = resumeText.split(/\s+/).filter(Boolean);
     const match = jdWords.filter((word) => resumeWords.includes(word)).length;
@@ -66,22 +82,22 @@ export default function Home() {
       <div className="max-w-6xl mx-auto space-y-8">
         <h1 className="text-3xl font-bold text-center text-gray-800">✨ AI Resume Tailor</h1>
 
-        {/* Input Section */}
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Resume Upload Card */}
           <div className="bg-white rounded-2xl shadow p-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-3">📄 Upload Resume</h2>
-            <div {...getRootProps()} className="border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer text-center text-sm text-gray-600">
+            <div
+              {...getRootProps()}
+              className="border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer text-center text-sm text-gray-600"
+            >
               <input {...getInputProps()} />
               {acceptedFiles.length > 0 ? (
                 <p>{acceptedFiles[0].name} uploaded</p>
               ) : (
-                <p>Drag & drop or click to upload PDF/DOCX</p>
+                <p>Drag & drop or click to upload PDF/DOCX/TXT</p>
               )}
             </div>
           </div>
 
-          {/* Job Description / LinkedIn Input */}
           <div className="bg-white rounded-2xl shadow p-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-3">🔗 Job Description / LinkedIn</h2>
             <textarea
@@ -94,7 +110,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Score & Tailor */}
         <div className="bg-white rounded-2xl shadow p-6 text-center">
           <div className="mb-4">
             <button
@@ -116,7 +131,6 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Output */}
         {tailored && (
           <div className="bg-white rounded-2xl shadow p-6">
             <h2 className="text-lg font-semibold text-gray-700 mb-4">🎯 Tailored Resume</h2>
