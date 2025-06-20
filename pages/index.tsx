@@ -7,6 +7,7 @@ export default function Home() {
   const [resumeText, setResumeText] = useState('');
   const [jdText, setJdText] = useState('');
   const [score, setScore] = useState<number | null>(null);
+  const [matchedKeywords, setMatchedKeywords] = useState<string[]>([]);
   const [tailored, setTailored] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +20,6 @@ export default function Home() {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
       text += content.items.map((item: { str: string }) => item.str).join(' ') + '\n';
-
     }
 
     return text;
@@ -59,39 +59,32 @@ export default function Home() {
   });
 
   const handleScore = () => {
-    if (!jdText.trim()) {
-      setScore(0);
-      return;
-    }
+    const jdWords = jdText
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter((word) => word.length > 2);
 
-    const stopWords = new Set([
-      'and', 'the', 'in', 'at', 'a', 'of', 'on', 'for', 'with', 'to', 'from', 'is', 'as', 'are',
-      'be', 'an', 'by', 'this', 'that', 'or', 'we', 'you', 'your'
-    ]);
+    const resumeWords = resumeText
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/);
 
-    const clean = (text: string) =>
-      text
-        .toLowerCase()
-        .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '')
-        .split(/\s+/)
-        .filter((word) => word && !stopWords.has(word));
+    const jdSet = new Set(jdWords);
+    let matchCount = 0;
+    const matched: string[] = [];
 
-    const jdWords = clean(jdText);
-    const resumeWords = clean(resumeText);
+    jdSet.forEach((word) => {
+      if (resumeWords.includes(word)) {
+        matchCount++;
+        matched.push(word);
+      }
+    });
 
-    const resumeSet = new Set(resumeWords);
-    const matchedWords = jdWords.filter((word) => resumeSet.has(word));
-    const matchCount = matchedWords.length;
-
-    const scorePercent = Math.min(100, Math.floor((matchCount / jdWords.length) * 100));
-    setScore(scorePercent);
-
-    // Debug (Optional): log matched keywords
-    console.log("Matched keywords:", matchedWords);
-    setMatchedKeywords(matchedWords);
+    const score = jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
+    setScore(score);
+    setMatchedKeywords(matched);
   };
-
-
 
   const handleTailor = async () => {
     setLoading(true);
@@ -148,12 +141,15 @@ export default function Home() {
             </button>
           </div>
           {score !== null && (
-            <div className="text-lg font-medium text-blue-600 mb-4">Score: {score}% match</div>
-            {matchedKeywords.length > 0 && (
-              <div className="text-sm text-gray-600">
-                Matched Keywords: <span className="text-blue-600">{matchedKeywords.join(', ')}</span>
-              </div>
-            )}
+            <>
+              <div className="text-lg font-medium text-blue-600 mb-2">Score: {score}% match</div>
+              {matchedKeywords.length > 0 && (
+                <div className="text-sm text-gray-600 mb-4">
+                  Matched Keywords:{' '}
+                  <span className="text-blue-600">{matchedKeywords.join(', ')}</span>
+                </div>
+              )}
+            </>
           )}
           <button
             onClick={handleTailor}
