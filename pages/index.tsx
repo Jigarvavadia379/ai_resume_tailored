@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import mammoth from 'mammoth';
+import pdfParse from 'pdf-parse';
 
 export default function Home() {
   const [resumeText, setResumeText] = useState('');
@@ -8,19 +10,35 @@ export default function Home() {
   const [tailored, setTailored] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
-    accept: { 'application/pdf': ['.pdf'], 'application/msword': ['.doc', '.docx'] },
-    maxFiles: 1,
-    onDrop: async (acceptedFiles) => {
+
+  const onDrop = async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
-      const reader = new FileReader();
-      reader.onload = () => {
-        const text = reader.result?.toString() || '';
-        setResumeText(text);
-      };
-      reader.readAsText(file); // basic placeholder; swap for real parser later
+      const ext = file.name.split('.').pop()?.toLowerCase();
+
+      if (ext === 'pdf') {
+        const buffer = await file.arrayBuffer();
+        const data = await pdfParse(buffer);
+        setResumeText(data.text || '');
+      } else if (ext === 'docx') {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        setResumeText(result.value || '');
+      } else {
+          alert("Unsupported file type. Please upload a PDF, DOCX, or TXT file.");
+      }
+    };
+
+  const { getRootProps, getInputProps, acceptedFiles } = useDropzone({
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'text/plain': ['.txt'],
     },
+    maxFiles: 1,
+    onDrop,
   });
+
+
 
   const handleScore = () => {
     // Dummy score logic (real scoring to come later)
@@ -44,7 +62,7 @@ export default function Home() {
   };
 
   return (
-    <main className="bg-[#F4F5F7] min-h-screen px-4 py-10">
+    <main className="bg-[#F4F5F7] min-h-screen px-4 py-10 sm:px-6 md:px-10">
       <div className="max-w-6xl mx-auto space-y-8">
         <h1 className="text-3xl font-bold text-center text-gray-800">✨ AI Resume Tailor</h1>
 
