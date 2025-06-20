@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
+import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
 
 export default function Home() {
   const [resumeText, setResumeText] = useState('');
@@ -94,6 +98,14 @@ export default function Home() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ original: resumeText, jd: jdText }),
     });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      console.error('Tailor error:', error);
+      setTailored('Something went wrong while tailoring the resume.');
+      setLoading(false);
+      return;
+    }
+
     const data = await res.json();
     setTailored(data.tailored || 'Something went wrong');
     setLoading(false);

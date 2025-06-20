@@ -3,9 +3,15 @@ import { supabase } from '../../lib/supabase';
 import { tailorResume } from '../../lib/openai';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== 'POST') {
+    return res.setHeader('Allow', 'POST').status(405).json({ error: 'Method Not Allowed' });
+  }
 
   const { original, jd } = req.body;
+
+  if (!original || !jd) {
+    return res.status(400).json({ error: 'Missing resume or job description' });
+  }
 
   try {
     const tailored = await tailorResume(original, jd);
@@ -16,11 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(200).json({ tailored });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Tailor API Error:', error.message);
-    } else {
-      console.error('Tailor API Unknown Error:', error);
-    }
+    console.error('Tailor API Error:', error instanceof Error ? error.message : error);
     return res.status(500).json({ error: 'Failed to tailor resume' });
   }
 }
