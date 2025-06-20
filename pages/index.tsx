@@ -59,12 +59,25 @@ export default function Home() {
   });
 
   const handleScore = () => {
-    const jdWords = jdText.split(/\s+/).filter(Boolean);
-    const resumeWords = resumeText.split(/\s+/).filter(Boolean);
+    if (!jdText.trim()) {
+      setScore(0);
+      return;
+    }
+
+    const stopWords = new Set(['and', 'the', 'in', 'at', 'a', 'of', 'on', 'for', 'with', 'to', 'from']);
+
+    const jdWords = jdText
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((word) => word && !stopWords.has(word));
+
+    const resumeWords = resumeText.toLowerCase().split(/\s+/);
+
     const match = jdWords.filter((word) => resumeWords.includes(word)).length;
     const score = Math.min(100, Math.floor((match / jdWords.length) * 100));
     setScore(score);
   };
+
 
   const handleTailor = async () => {
     setLoading(true);
