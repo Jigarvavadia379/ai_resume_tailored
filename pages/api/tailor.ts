@@ -10,12 +10,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const tailored = await tailorResume(original, jd);
 
-    // Save to Supabase (don't assign unused variable 'data')
-    const { error } = await supabase
+    // Insert into Supabase (ignore unused 'data')
+    await supabase
       .from('resumes')
       .insert([{ original_resume: original, job_description: jd, tailored_resume: tailored }]);
-
-    if (error) throw new Error(error.message);
 
     res.status(200).json({ tailored });
   } catch (error: any) {
