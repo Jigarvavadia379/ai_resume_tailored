@@ -33,6 +33,7 @@ export default function Home() {
       const buffer = await file.arrayBuffer();
       const text = await extractTextFromPDF(buffer);
       setResumeText(text);
+      console.log('Extracted Resume Text:', text);
     } else if (ext === 'docx') {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
@@ -169,6 +170,12 @@ export default function Home() {
           </div>
         )}
       </div>
+      {resumeText && (
+        <div className="bg-white p-4 rounded-xl shadow">
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">📝 Extracted Resume Text</h2>
+          <pre className="text-sm text-gray-700 whitespace-pre-wrap">{resumeText}</pre>
+        </div>
+      )}
     </main>
   );
 }
