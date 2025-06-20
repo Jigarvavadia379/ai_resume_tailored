@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
+    "html2pdf.js": "^0.10.3",
     "next": "15.3.4",
     "openai": "^5.5.1",
     "react": "^19.0.0",
