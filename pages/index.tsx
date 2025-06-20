@@ -64,19 +64,33 @@ export default function Home() {
       return;
     }
 
-    const stopWords = new Set(['and', 'the', 'in', 'at', 'a', 'of', 'on', 'for', 'with', 'to', 'from']);
+    const stopWords = new Set([
+      'and', 'the', 'in', 'at', 'a', 'of', 'on', 'for', 'with', 'to', 'from', 'is', 'as', 'are',
+      'be', 'an', 'by', 'this', 'that', 'or', 'we', 'you', 'your'
+    ]);
 
-    const jdWords = jdText
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((word) => word && !stopWords.has(word));
+    const clean = (text: string) =>
+      text
+        .toLowerCase()
+        .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, '')
+        .split(/\s+/)
+        .filter((word) => word && !stopWords.has(word));
 
-    const resumeWords = resumeText.toLowerCase().split(/\s+/);
+    const jdWords = clean(jdText);
+    const resumeWords = clean(resumeText);
 
-    const match = jdWords.filter((word) => resumeWords.includes(word)).length;
-    const score = Math.min(100, Math.floor((match / jdWords.length) * 100));
-    setScore(score);
+    const resumeSet = new Set(resumeWords);
+    const matchedWords = jdWords.filter((word) => resumeSet.has(word));
+    const matchCount = matchedWords.length;
+
+    const scorePercent = Math.min(100, Math.floor((matchCount / jdWords.length) * 100));
+    setScore(scorePercent);
+
+    // Debug (Optional): log matched keywords
+    console.log("Matched keywords:", matchedWords);
+    setMatchedKeywords(matchedWords);
   };
+
 
 
   const handleTailor = async () => {
@@ -135,6 +149,11 @@ export default function Home() {
           </div>
           {score !== null && (
             <div className="text-lg font-medium text-blue-600 mb-4">Score: {score}% match</div>
+            {matchedKeywords.length > 0 && (
+              <div className="text-sm text-gray-600">
+                Matched Keywords: <span className="text-blue-600">{matchedKeywords.join(', ')}</span>
+              </div>
+            )}
           )}
           <button
             onClick={handleTailor}
