@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
-import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 
 export default function Home() {
@@ -13,7 +12,9 @@ export default function Home() {
   const [score, setScore] = useState<number | null>(null);
   const [matchedKeywords, setMatchedKeywords] = useState<string[]>([]);
   const [tailored, setTailored] = useState('');
+  const [suggestions, setSuggestions] = useState('');
   const [loading, setLoading] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
     const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
@@ -37,7 +38,6 @@ export default function Home() {
       const buffer = await file.arrayBuffer();
       const text = await extractTextFromPDF(buffer);
       setResumeText(text);
-      console.log('Extracted Resume Text:', text);
     } else if (ext === 'docx') {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
@@ -68,14 +68,14 @@ export default function Home() {
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/)
-      .filter((word) => word.length > 2);
+      .filter((word: string) => word.length > 2);
 
     const resumeWords = resumeText
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/);
 
-    const jdSet = new Set(jdWords);
+    const jdSet = new Set<string>(jdWords);
     let matchCount = 0;
     const matched: string[] = [];
 
@@ -86,9 +86,30 @@ export default function Home() {
       }
     });
 
-    const score = jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
-    setScore(score);
+    const calculatedScore =
+      jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
+    setScore(calculatedScore);
     setMatchedKeywords(matched);
+  };
+
+  const handleSuggest = async () => {
+    setLoading(true);
+    const res = await fetch('/api/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ original: resumeText, jd: jdText }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      console.error('Suggest error:', error);
+      setSuggestions('Something went wrong while generating suggestions.');
+      setLoading(false);
+      return;
+    }
+
+    const data = await res.json();
+    setSuggestions(data.suggestions || '');
+    setLoading(false);
   };
 
   const handleTailor = async () => {
@@ -107,8 +128,20 @@ export default function Home() {
     }
 
     const data = await res.json();
-    setTailored(data.tailored || 'Something went wrong');
+    const tailoredText: string = data.tailored || 'Something went wrong';
+    setTailored(tailoredText);
+    setResumeText(tailoredText);
+    const blob = new Blob([tailoredText], { type: 'text/plain' });
+    setDownloadUrl(URL.createObjectURL(blob));
     setLoading(false);
+  };
+
+  const handleDownload = () => {
+    if (!downloadUrl) return;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'tailored-resume.txt';
+    link.click();
   };
 
   return (
@@ -139,18 +172,26 @@ export default function Home() {
               rows={10}
               className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               value={jdText}
-              onChange={(e) => setJdText(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setJdText(e.target.value)}
             />
           </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow p-6 text-center">
-          <div className="mb-4">
+          <div className="mb-4 space-x-2">
             <button
               onClick={handleScore}
               className="bg-gray-800 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-gray-900 transition"
             >
               🔍 Check & Score Resume
+            </button>
+            <button
+              onClick={handleSuggest}
+              disabled={loading}
+              className="bg-green-600 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-green-700 transition disabled:opacity-50"
+            >
+              {loading ? 'Working...' : '💡 Suggest Edits'}
             </button>
           </div>
           {score !== null && (
@@ -163,6 +204,19 @@ export default function Home() {
                 </div>
               )}
             </>
+          )}
+          {suggestions && (
+            <div className="text-sm text-left bg-gray-50 p-4 rounded-xl mb-4 whitespace-pre-wrap">
+              {suggestions}
+              <div className="text-center mt-2">
+                <button
+                  onClick={handleTailor}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition mt-2"
+                >
+                  Apply Suggestions
+                </button>
+              </div>
+            </div>
           )}
           <button
             onClick={handleTailor}
@@ -179,15 +233,19 @@ export default function Home() {
             <div className="bg-gray-100 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[400px] overflow-auto font-mono text-gray-800">
               {tailored}
             </div>
+            {downloadUrl && (
+              <div className="text-center mt-4">
+                <button
+                  onClick={handleDownload}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-purple-700 transition"
+                >
+                  ⬇️ Download Resume
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
-      {resumeText && (
-        <div className="bg-white p-4 rounded-xl shadow">
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">📝 Extracted Resume Text</h2>
-          <pre className="text-sm text-gray-700 whitespace-pre-wrap">{resumeText}</pre>
-        </div>
-      )}
     </main>
   );
 }
