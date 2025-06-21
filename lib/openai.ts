@@ -1,8 +1,23 @@
-import OpenAI from 'openai';
+const HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct";
+const HF_API_KEY = process.env.HF_API_KEY!;
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+async function callHuggingFace(prompt: string): Promise<string> {
+  const response = await fetch(HF_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${HF_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ inputs: prompt }),
+  });
+
+  const data = await response.json();
+
+  if (data.error) throw new Error(data.error);
+
+  // Return generated text if available
+  return data[0]?.generated_text || "No response";
+}
 
 export async function tailorResume(original: string, jd: string): Promise<string> {
   const prompt = `
@@ -18,13 +33,7 @@ ${original}
 
 Output:
 `;
-
-  const completion = await openai.chat.completions.create({
-    messages: [{ role: 'user', content: prompt }],
-    model: 'gpt-4',
-  });
-
-  return completion.choices[0].message.content || '';
+  return await callHuggingFace(prompt);
 }
 
 export async function suggestEdits(original: string, jd: string): Promise<string> {
@@ -40,11 +49,5 @@ ${original}
 
 Output:
 `;
-
-  const completion = await openai.chat.completions.create({
-    messages: [{ role: 'user', content: prompt }],
-    model: 'gpt-4',
-  });
-
-  return completion.choices[0].message.content || '';
+  return await callHuggingFace(prompt);
 }
