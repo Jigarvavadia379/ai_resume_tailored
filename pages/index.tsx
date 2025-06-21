@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import mammoth from 'mammoth';
+// @ts-ignore
 import * as pdfjsLib from 'pdfjs-dist/build/pdf';
+// @ts-ignore
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.entry';
-
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export default function Home() {
