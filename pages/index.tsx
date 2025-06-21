@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
-import pdfjsWorker from 'pdfjs-dist/legacy/build/pdf.worker.entry';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 
 export default function Home() {
@@ -68,14 +67,14 @@ export default function Home() {
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/)
-      .filter((word) => word.length > 2);
+      .filter((word: string) => word.length > 2);
 
     const resumeWords = resumeText
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/);
 
-    const jdSet = new Set(jdWords);
+    const jdSet = new Set<string>(jdWords);
     let matchCount = 0;
     const matched: string[] = [];
 
@@ -86,8 +85,9 @@ export default function Home() {
       }
     });
 
-    const score = jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
-    setScore(score);
+    const calculatedScore =
+      jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
+    setScore(calculatedScore);
     setMatchedKeywords(matched);
   };
 
@@ -139,7 +139,8 @@ export default function Home() {
               rows={10}
               className="w-full p-4 border border-gray-300 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               value={jdText}
-              onChange={(e) => setJdText(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setJdText(e.target.value)}
             />
           </div>
         </div>
