@@ -86,8 +86,9 @@ export default function Home() {
       }
     });
 
-    const score = jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
-    setScore(score);
+    const calculatedScore =
+      jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
+    setScore(calculatedScore);
     setMatchedKeywords(matched);
   };
 
