@@ -4,8 +4,7 @@ import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist/build/pdf';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.entry';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
-
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 export default function Home() {
   const [resumeText, setResumeText] = useState('');
