@@ -88,6 +88,12 @@ export default function Home() {
         .filter((word) => word.length > 2)
     );
 
+    const resumeWords = originalResumeText
+      .toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/);
+
+
     const jdSet = new Set<string>(jdWords);
     let matchCount = 0;
     const matched: string[] = [];
