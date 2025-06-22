@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 
 export default function Home() {
@@ -70,30 +69,45 @@ export default function Home() {
   });
 
   const handleScore = () => {
+    if (!resumeText.trim() || !jdText.trim()) {
+      alert('Please upload a resume and paste the job description.');
+      return;
+    }
+
     const jdWords = jdText
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/)
       .filter((word: string) => word.length > 2);
 
+    const resumeWordsSet = new Set(
+      resumeText
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter((word) => word.length > 2)
+    );
+
     const resumeWords = originalResumeText
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/);
+
 
     const jdSet = new Set<string>(jdWords);
     let matchCount = 0;
     const matched: string[] = [];
 
     jdSet.forEach((word) => {
-      if (resumeWords.includes(word)) {
+      if (resumeWordsSet.has(word)) {
         matchCount++;
         matched.push(word);
       }
     });
 
-    const calculatedScore =
-      jdWords.length > 0 ? Math.floor((matchCount / jdSet.size) * 100) : 0;
+    const calculatedScore = jdSet.size
+      ? Math.floor((matchCount / jdSet.size) * 100)
+      : 0;
     setScore(calculatedScore);
     setMatchedKeywords(matched);
   };
@@ -103,7 +117,7 @@ export default function Home() {
     const res = await fetch('/api/suggest', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ original: resumeText, jd: jdText }),
+      body: JSON.stringify({ original: originalResumeText || resumeText, jd: jdText }),
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
@@ -123,7 +137,7 @@ export default function Home() {
     const res = await fetch('/api/tailor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ original: resumeText, jd: jdText }),
+      body: JSON.stringify({ original: originalResumeText || resumeText, jd: jdText }),
     });
     if (!res.ok) {
       const error = await res.json().catch(() => ({}));
