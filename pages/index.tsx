@@ -26,7 +26,7 @@ export default function Home() {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        text += content.items.map((item: any) => item.str).join(' ') + '\n';
+        text += content.items.map((item: { str: string }) => item.str).join(' ') + '\n';
       }
 
       return text;
@@ -97,7 +97,7 @@ export default function Home() {
         threshold: 0.3, // Adjust for stricter/looser matching
       });
 
-      let matched: string[] = [];
+      const matched: string[] = [];
       let matchCount = 0;
 
       jdWords.forEach((word) => {
