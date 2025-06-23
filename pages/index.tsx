@@ -149,12 +149,30 @@ export default function Home() {
     }
 
     setLoading(true);
-    // Use originalResumeText for suggestions if available, otherwise use resumeText
     const sourceText = originalResumeText || resumeText;
-    console.log('Generating suggestions for resume length:', sourceText.length);
 
-    // Simulate API call with mock suggestions
-    setTimeout(() => {
+    try {
+      // Real API call to your backend
+      const res = await fetch('/api/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ original: sourceText, jd: jdText }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error('Suggest error:', error);
+        setSuggestions('Something went wrong while generating suggestions.');
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      setSuggestions(data.suggestions || 'No suggestions available');
+      setLoading(false);
+    } catch (error) {
+      console.error('API call failed:', error);
+      // Fallback to mock suggestions if API fails
       setSuggestions(`Based on the job description, consider these improvements:
 
 1. Add relevant keywords that appear in the job posting
@@ -163,7 +181,7 @@ export default function Home() {
 4. Tailor your experience descriptions to match the job requirements
 5. Include industry-specific terminology from the job posting`);
       setLoading(false);
-    }, 2000);
+    }
   };
 
   const handleTailor = async () => {
@@ -173,11 +191,36 @@ export default function Home() {
     }
 
     setLoading(true);
-    // Use originalResumeText for tailoring if available, otherwise use current resumeText
     const sourceText = originalResumeText || resumeText;
 
-    // Simulate tailoring process
-    setTimeout(() => {
+    try {
+      // Real API call to your backend
+      const res = await fetch('/api/tailor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ original: sourceText, jd: jdText }),
+      });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        console.error('Tailor error:', error);
+        setTailored('Something went wrong while tailoring the resume.');
+        setLoading(false);
+        return;
+      }
+
+      const data = await res.json();
+      const tailoredText = data.tailored || 'Something went wrong';
+
+      setTailored(tailoredText);
+      setResumeText(tailoredText);
+
+      const blob = new Blob([tailoredText], { type: 'text/plain' });
+      setDownloadUrl(URL.createObjectURL(blob));
+      setLoading(false);
+    } catch (error) {
+      console.error('API call failed:', error);
+      // Fallback to mock tailoring if API fails
       const tailoredText = `${sourceText}\n\n--- TAILORED ENHANCEMENTS ---\n\nBased on the job description, your resume has been enhanced with:\n- Relevant keywords from the job posting\n- Improved formatting and structure\n- Quantified achievements\n- Industry-specific terminology\n\n(This is a demo. In a real application, this would be processed by AI)`;
 
       setTailored(tailoredText);
@@ -186,7 +229,7 @@ export default function Home() {
       const blob = new Blob([tailoredText], { type: 'text/plain' });
       setDownloadUrl(URL.createObjectURL(blob));
       setLoading(false);
-    }, 3000);
+    }
   };
 
   const handleDownload = () => {
