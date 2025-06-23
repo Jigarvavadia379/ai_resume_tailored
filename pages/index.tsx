@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api';
+
 
 export default function Home() {
   const [resumeText, setResumeText] = useState('');
@@ -55,7 +57,7 @@ export default function Home() {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const pageText = content.items.map((item: { str: string }) => item.str).join(' ');
+        const pageText = (content.items as TextItem[]).map((item) => item.str).join(' ');
         text += pageText + '\n';
       }
 
