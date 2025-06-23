@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="com.obiscr.chatgpt.settings.EasyCodeState">
+    <option name="projectFiles" value="$PROJECT_DIR$/lib/huggingface.ts;C:/Users/jforj/ai_resume_tailored/lib/supabase.ts;C:/Users/jforj/ai_resume_tailored/pages/api/suggest.ts;C:/Users/jforj/ai_resume_tailored/pages/api/tailor.ts;C:/Users/jforj/ai_resume_tailored/pages/_app.tsx;C:/Users/jforj/ai_resume_tailored/pages/index.tsx;C:/Users/jforj/ai_resume_tailored/styles/globals.css;C:/Users/jforj/ai_resume_tailored/types/pdfjs-worker.d.ts;C:/Users/jforj/ai_resume_tailored/next.config.ts;C:/Users/jforj/ai_resume_tailored/package-lock.json;C:/Users/jforj/ai_resume_tailored/package.json;C:/Users/jforj/ai_resume_tailored/pdfjs.d.ts;C:/Users/jforj/ai_resume_tailored/postcss.config.js;C:/Users/jforj/ai_resume_tailored/README.md;C:/Users/jforj/ai_resume_tailored/tailwind.config.js;C:/Users/jforj/ai_resume_tailored/tsconfig.json" />
+  </component>
+</project>

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf';
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+import Fuse from 'fuse.js';
 
 
 export default function Home() {
@@ -17,17 +18,22 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    let text = '';
+    try {
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdf = await loadingTask.promise;
+      let text = '';
 
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map((item: { str: string }) => item.str).join(' ') + '\n';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: any) => item.str).join(' ') + '\n';
+      }
+
+      return text;
+    } catch (error) {
+      console.error('PDF extraction failed:', error);
+      throw new Error('Failed to extract text from PDF');
     }
-
-    return text;
   };
 
   const onDrop = async (acceptedFiles: File[]) => {
@@ -68,49 +74,44 @@ export default function Home() {
     onDrop,
   });
 
-  const handleScore = () => {
-    if (!resumeText.trim() || !jdText.trim()) {
-      alert('Please upload a resume and paste the job description.');
-      return;
-    }
+      const handleScore = () => {
+        if (!resumeText?.trim() || !jdText?.trim()) {
+          alert('Please upload a resume and paste the job description.');
+          return;
+        }
 
-    const jdWords = jdText
-      .toLowerCase()
-      .replace(/[^\w\s]/g, '')
-      .split(/\s+/)
-      .filter((word: string) => word.length > 2);
-
-    const resumeWordsSet = new Set(
-      resumeText
+      const jdWords = jdText
         .toLowerCase()
         .replace(/[^\w\s]/g, '')
         .split(/\s+/)
-        .filter((word) => word.length > 2)
-    );
+        .filter((word) => word.length > 2);
 
-    const resumeWords = originalResumeText
-      .toLowerCase()
-      .replace(/[^\w\s]/g, '')
-      .split(/\s+/);
+      const resumeWords = resumeText
+        .toLowerCase()
+        .replace(/[^\w\s]/g, '')
+        .split(/\s+/)
+        .filter((word) => word.length > 2);
 
+      const fuse = new Fuse(resumeWords, {
+        includeScore: true,
+        threshold: 0.3, // Adjust for stricter/looser matching
+      });
 
-    const jdSet = new Set<string>(jdWords);
-    let matchCount = 0;
-    const matched: string[] = [];
+      let matched: string[] = [];
+      let matchCount = 0;
 
-    jdSet.forEach((word) => {
-      if (resumeWordsSet.has(word)) {
-        matchCount++;
-        matched.push(word);
-      }
-    });
+      jdWords.forEach((word) => {
+        const result = fuse.search(word);
+        if (result.length > 0 && result[0].score !== undefined && result[0].score < 0.3) {
+          matchCount++;
+          matched.push(word);
+        }
+      });
 
-    const calculatedScore = jdSet.size
-      ? Math.floor((matchCount / jdSet.size) * 100)
-      : 0;
-    setScore(calculatedScore);
-    setMatchedKeywords(matched);
-  };
+      const score = jdWords.length > 0 ? Math.floor((matchCount / jdWords.length) * 100) : 0;
+      setScore(score);
+      setMatchedKeywords(matched);
+    };
 
   const handleSuggest = async () => {
     setLoading(true);
