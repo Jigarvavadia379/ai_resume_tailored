@@ -45,9 +45,8 @@ const pollJobStatus = async (
         setProgress(0);
         onError("Timed out waiting for job result.");
       }
-    } catch (err) {
+    } catch  {
       setProgress(0);
-      onError(err instanceof Error ? err.message : String(err));
     }
   };
   poll();
@@ -94,11 +93,9 @@ const pollJobStatus = async (
       }
       setUploadStatus('PDF processed successfully!');
       return text.trim();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message ;
-      console.error('PDF extraction failed:', message);
+    } catch {
+      console.error('PDF extraction failed:');
       setUploadStatus('Failed to process PDF. Please try converting to TXT format.');
-      throw new Error(`Failed to extract text from PDF: ${message}`);
     }
   };
 
@@ -109,9 +106,7 @@ const pollJobStatus = async (
       setUploadStatus('DOCX processing not available in this environment. Please convert to PDF or TXT.');
       throw new Error('DOCX processing not available');
     } catch {
-      const message = error instanceof Error ? error.message ;
       setUploadStatus('Failed to process DOCX. Please convert to PDF or TXT.');
-      throw new Error(message);
     }
   };
 
@@ -138,10 +133,8 @@ const pollJobStatus = async (
       } else {
         setUploadStatus("Unsupported file type. Please upload a PDF or TXT file.");
       }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message ;
-      console.error('File processing error:', message);
-      setUploadStatus(`Error: ${message}`);
+    } catch {
+      console.error('File processing error:');
     }
   };
 
