@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
+
+
 export default function Home() {
   const [resumeText, setResumeText] = useState('');
   const [originalResumeText, setOriginalResumeText] = useState('');
@@ -12,6 +14,44 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [progress, setProgress] = useState(0); // Progress from 0 to 100
+
+const pollJobStatus = async (
+  jobId: string,
+  onResult: (result: string) => void,
+  onError: (msg: string) => void
+) => {
+  let attempts = 0;
+  const maxAttempts = 30; // (30 x 2s = 60s)
+  setProgress(0);
+
+  const poll = async () => {
+    attempts++;
+    setProgress(Math.min(100, Math.floor((attempts / maxAttempts) * 100)));
+    try {
+      const res = await fetch(`/api/job-status?jobId=${jobId}`);
+      if (!res.ok) throw new Error("Failed to check job status");
+      const data = await res.json();
+      if (data.status === "complete") {
+        setProgress(100);
+        setTimeout(() => setProgress(0), 500);
+        onResult(data.result || 'No output');
+      } else if (data.status === "error") {
+        setProgress(0);
+        onError(data.error_message || "Job failed.");
+      } else if (attempts < maxAttempts) {
+        setTimeout(poll, 2000);
+      } else {
+        setProgress(0);
+        onError("Timed out waiting for job result.");
+      }
+    } catch (err) {
+      setProgress(0);
+      onError(err instanceof Error ? err.message : String(err));
+    }
+  };
+  poll();
+};
 
   const loadPDFJS = () => {
     return new Promise<typeof import('pdfjs-dist')>((resolve, reject) => {
@@ -141,29 +181,38 @@ export default function Home() {
       return;
     }
     setLoading(true);
+    setSuggestions('');
     const sourceText = originalResumeText || resumeText;
     try {
-      const res = await fetch('/api/suggest', {
+      const res = await fetch('/api/start-job', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ original: sourceText, jd: jdText }),
+        body: JSON.stringify({
+          job_type: "suggest",
+          original_resume: sourceText,
+          job_description: jdText
+        }),
       });
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        const errorMsg = errorData.message || 'Something went wrong while generating suggestions.';
-        setSuggestions(errorMsg);
-        setLoading(false);
+        setSuggestions('Could not create job.');
+        setLoading(false); setProgress(0);
+
         return;
       }
-      const data = await res.json();
-      setSuggestions(data.suggestions || 'No suggestions available');
-      setLoading(false);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      setSuggestions(`Based on the job description, consider these improvements:\n\n1. Add relevant keywords that appear in the job posting\n2. Highlight specific technical skills mentioned in the JD\n3. Quantify your achievements with numbers and metrics\n4. Tailor your experience descriptions to match the job requirements\n5. Include industry-specific terminology from the job posting\n\n(API error: ${message})`);
-      setLoading(false);
+      const { jobId } = await res.json();
+      pollJobStatus(jobId,
+        (result) => { setSuggestions(result); setLoading(false); setProgress(0);
+ },
+        (msg) => { setSuggestions(msg); setLoading(false); setProgress(0);
+ }
+      );
+    } catch (error) {
+      setSuggestions('Error submitting job');
+      setLoading(false); setProgress(0);
+
     }
   };
+
 
   const handleTailor = async () => {
     if (!resumeText?.trim() || !jdText?.trim()) {
@@ -171,37 +220,44 @@ export default function Home() {
       return;
     }
     setLoading(true);
+    setTailored('');
     const sourceText = originalResumeText || resumeText;
     try {
-      const res = await fetch('/api/tailor', {
+      const res = await fetch('/api/start-job', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ original: sourceText, jd: jdText }),
+        body: JSON.stringify({
+          job_type: "tailor",
+          original_resume: sourceText,
+          job_description: jdText
+        }),
       });
       if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        const errorMsg = errorData.message || 'Something went wrong while tailoring the resume.';
-        setTailored(errorMsg);
-        setLoading(false);
+        setTailored('Could not create job.');
+        setLoading(false); setProgress(0);
+
         return;
       }
-      const data = await res.json();
-      const tailoredText = data.tailored || 'Something went wrong';
-      setTailored(tailoredText);
-      setResumeText(tailoredText);
-      const blob = new Blob([tailoredText], { type: 'text/plain' });
-      setDownloadUrl(URL.createObjectURL(blob));
-      setLoading(false);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      const tailoredText = `${sourceText}\n\n--- TAILORED ENHANCEMENTS ---\n\nBased on the job description, your resume has been enhanced with:\n- Relevant keywords from the job posting\n- Improved formatting and structure\n- Quantified achievements\n- Industry-specific terminology\n\n(This is a demo. In a real application, this would be processed by AI)\n\n(API error: ${message})`;
-      setTailored(tailoredText);
-      setResumeText(tailoredText);
-      const blob = new Blob([tailoredText], { type: 'text/plain' });
-      setDownloadUrl(URL.createObjectURL(blob));
-      setLoading(false);
+      const { jobId } = await res.json();
+      pollJobStatus(jobId,
+        (result) => {
+          setTailored(result);
+          setResumeText(result);
+          const blob = new Blob([result], { type: 'text/plain' });
+          setDownloadUrl(URL.createObjectURL(blob));
+          setLoading(false); setProgress(0);
+
+        },
+        (msg) => { setTailored(msg); setLoading(false); setProgress(0);
+ }
+      );
+    } catch (error) {
+      setTailored('Error submitting job');
+      setLoading(false); setProgress(0);
+
     }
   };
+
 
   const handleDownload = () => {
     if (!downloadUrl) return;
@@ -300,6 +356,19 @@ export default function Home() {
                 )}
               </div>
             )}
+                {loading && (
+                  <div className="w-full flex flex-col items-center my-4">
+                    <div className="w-2/3 h-3 bg-blue-100 rounded-full overflow-hidden mb-2">
+                      <div
+                        className="bg-blue-500 h-3 rounded-full transition-all duration-200"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <div className="text-blue-700 text-sm font-medium">
+                      AI is working... {progress}% done
+                    </div>
+                  </div>
+                )}
             {suggestions && (
               <div className="bg-green-50 p-4 rounded-xl border border-green-200 text-left">
                 <h3 className="font-semibold text-green-800 mb-2">💡 Suggestions for Improvement:</h3>
