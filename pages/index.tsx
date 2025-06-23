@@ -15,17 +15,20 @@ export default function Home() {
   // Load PDF.js library
   const loadPDFJS = () => {
     return new Promise((resolve, reject) => {
-      if (window.pdfjsLib) {
-        resolve(window.pdfjsLib);
+      // Type assertion for window with pdfjsLib property
+      const windowWithPDFJS = window as any;
+
+      if (windowWithPDFJS.pdfjsLib) {
+        resolve(windowWithPDFJS.pdfjsLib);
         return;
       }
 
       const script = document.createElement('script');
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
       script.onload = () => {
-        if (window.pdfjsLib) {
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-          resolve(window.pdfjsLib);
+        if (windowWithPDFJS.pdfjsLib) {
+          windowWithPDFJS.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          resolve(windowWithPDFJS.pdfjsLib);
         } else {
           reject(new Error('PDF.js failed to load'));
         }
@@ -35,11 +38,11 @@ export default function Home() {
     });
   };
 
-  const extractTextFromPDF = async (arrayBuffer) => {
+  const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Loading PDF processor...');
 
-      const pdfjsLib = await loadPDFJS();
+      const pdfjsLib = await loadPDFJS() as any;
 
       setUploadStatus('Processing PDF...');
 
@@ -50,7 +53,7 @@ export default function Home() {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const pageText = content.items.map(item => item.str).join(' ');
+        const pageText = content.items.map((item: any) => item.str).join(' ');
         text += pageText + '\n';
       }
 
@@ -76,8 +79,8 @@ export default function Home() {
     }
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     setUploadStatus('');
@@ -100,7 +103,7 @@ export default function Home() {
       } else {
         setUploadStatus("Unsupported file type. Please upload a PDF or TXT file.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('File processing error:', error);
       setUploadStatus(`Error: ${error.message}`);
     }
