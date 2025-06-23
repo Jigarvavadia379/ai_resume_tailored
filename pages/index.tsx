@@ -120,15 +120,15 @@ const pollJobStatus = async (
       if (ext === 'pdf') {
         const buffer = await file.arrayBuffer();
         const text = await extractTextFromPDF(buffer);
-        setResumeText(text);
-        setOriginalResumeText(text);
+        setResumeText(text || '');
+        setOriginalResumeText(text || '');
       } else if (ext === 'docx') {
         const arrayBuffer = await file.arrayBuffer();
         await extractTextFromDOCX(arrayBuffer);
       } else if (ext === 'txt') {
         const text = await file.text();
-        setResumeText(text);
-        setOriginalResumeText(text);
+        setResumeText(text || '');
+        setOriginalResumeText(text || '');
         setUploadStatus('TXT file uploaded successfully!');
       } else {
         setUploadStatus("Unsupported file type. Please upload a PDF or TXT file.");
