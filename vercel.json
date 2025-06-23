@@ -1,5 +1,5 @@
 {
-  "crons": [
+  "cron": [
     {
       "path": "/api/process-jobs",
       "schedule": "*/5 * * * * *"
