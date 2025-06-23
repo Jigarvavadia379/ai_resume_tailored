@@ -1,5 +1,5 @@
 const HF_API_KEY = process.env.HF_API_KEY!;
-const HF_ENDPOINT = 'https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-R1-0528';
+const HF_ENDPOINT = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct';
 
 async function queryHuggingFace(prompt: string): Promise<string> {
   const res = await fetch(HF_ENDPOINT, {
