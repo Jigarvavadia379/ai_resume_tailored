@@ -21,7 +21,8 @@ async function queryHuggingFace(prompt: string): Promise<string> {
   if (typeof output !== 'string') {
     return JSON.stringify(data);
   }
-  return output;
+  const result = output.replace(prompt, '').trim();
+  return result;
 }
 
 export async function tailorResume(original: string, jd: string): Promise<string> {
