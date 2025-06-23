@@ -5,7 +5,7 @@ const client = new InferenceClient(process.env.HF_API_KEY);
 export async function suggestEdits(original: string, jd: string): Promise<string> {
   const chatCompletion = await client.chatCompletion({
     provider: "featherless-ai",
-    model: "mistralai/Magistral-Small-2506",
+    model: "MiniMaxAI/MiniMax-M1-80k",
     messages: [
       {
         role: "user",
@@ -24,7 +24,7 @@ export async function suggestEdits(original: string, jd: string): Promise<string
 export async function tailorResume(original: string, jd: string): Promise<string> {
   const chatCompletion = await client.chatCompletion({
     provider: "novita",
-    model: "deepseek-ai/DeepSeek-R1-0528",
+    model: "MiniMaxAI/MiniMax-M1-80k",
     messages: [
       {
         role: "user",
