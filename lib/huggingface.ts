@@ -1,6 +1,6 @@
 import { InferenceClient } from "@huggingface/inference";
 
-const client = new InferenceClient(process.env.HF_TOKEN);
+const client = new InferenceClient(process.env.HF_API_KEY);
 
 export async function suggestEdits(original: string, jd: string): Promise<string> {
   const chatCompletion = await client.chatCompletion({
