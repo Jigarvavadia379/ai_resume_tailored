@@ -13,36 +13,38 @@ export default function Home() {
   const [uploadStatus, setUploadStatus] = useState('');
 
   // Load PDF.js library
-  const loadPDFJS = () => {
-    return new Promise((resolve, reject) => {
-      // Type assertion for window with pdfjsLib property
-      const windowWithPDFJS = window as any;
+   const loadPDFJS = () => {
+     return new Promise<typeof import('pdfjs-dist')>((resolve, reject) => {
+       const windowWithPDFJS = window as typeof window & {
+         pdfjsLib?: typeof import('pdfjs-dist');
+       };
 
-      if (windowWithPDFJS.pdfjsLib) {
-        resolve(windowWithPDFJS.pdfjsLib);
-        return;
-      }
+       if (windowWithPDFJS.pdfjsLib) {
+         resolve(windowWithPDFJS.pdfjsLib);
+         return;
+       }
 
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-      script.onload = () => {
-        if (windowWithPDFJS.pdfjsLib) {
-          windowWithPDFJS.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-          resolve(windowWithPDFJS.pdfjsLib);
-        } else {
-          reject(new Error('PDF.js failed to load'));
-        }
-      };
-      script.onerror = () => reject(new Error('Failed to load PDF.js script'));
-      document.head.appendChild(script);
-    });
-  };
+       const script = document.createElement('script');
+       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+       script.onload = () => {
+         if (windowWithPDFJS.pdfjsLib) {
+           windowWithPDFJS.pdfjsLib.GlobalWorkerOptions.workerSrc =
+             'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+           resolve(windowWithPDFJS.pdfjsLib);
+         } else {
+           reject(new Error('PDF.js failed to load'));
+         }
+       };
+       script.onerror = () => reject(new Error('Failed to load PDF.js script'));
+       document.head.appendChild(script);
+     });
+   };
 
   const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Loading PDF processor...');
 
-      const pdfjsLib = await loadPDFJS() as any;
+      const pdfjsLib = await loadPDFJS();
 
       setUploadStatus('Processing PDF...');
 
@@ -53,16 +55,17 @@ export default function Home() {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const pageText = content.items.map((item: any) => item.str).join(' ');
+        const pageText = content.items.map((item: { str: string }) => item.str).join(' ');
         text += pageText + '\n';
       }
 
       setUploadStatus('PDF processed successfully!');
       return text.trim();
-    } catch (error) {
-      console.error('PDF extraction failed:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('PDF extraction failed:', message);
       setUploadStatus('Failed to process PDF. Please try converting to TXT format.');
-      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+      throw new Error(`Failed to extract text from PDF: ${message}`);
     }
   };
 
