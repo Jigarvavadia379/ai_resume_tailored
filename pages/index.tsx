@@ -65,7 +65,7 @@ export default function Home() {
   const extractTextFromDOCX = async (arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Processing DOCX...');
-      // DOCX parsing is not available in this environment
+      console.log('DOCX file size:', arrayBuffer.byteLength); // prevents unused var error
       setUploadStatus('DOCX processing not available in this environment. Please convert to PDF or TXT.');
       throw new Error('DOCX processing not available');
     } catch (error: unknown) {
@@ -74,6 +74,7 @@ export default function Home() {
       throw new Error(message);
     }
   };
+
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
