@@ -63,9 +63,10 @@ export default function Home() {
     }
   };
 
-  const extractTextFromDOCX = async (arrayBuffer) => {
+  const extractTextFromDOCX = async (arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Processing DOCX...');
+      console.log('DOCX file size:', arrayBuffer.byteLength); // Use arrayBuffer to avoid unused variable error
       // Since mammoth isn't available, we'll show a placeholder
       setUploadStatus('DOCX processing not available in this environment. Please convert to PDF or TXT.');
       throw new Error('DOCX processing not available');
@@ -148,6 +149,10 @@ export default function Home() {
     }
 
     setLoading(true);
+    // Use originalResumeText for suggestions if available, otherwise use resumeText
+    const sourceText = originalResumeText || resumeText;
+    console.log('Generating suggestions for resume length:', sourceText.length);
+
     // Simulate API call with mock suggestions
     setTimeout(() => {
       setSuggestions(`Based on the job description, consider these improvements:
@@ -168,9 +173,12 @@ export default function Home() {
     }
 
     setLoading(true);
+    // Use originalResumeText for tailoring if available, otherwise use current resumeText
+    const sourceText = originalResumeText || resumeText;
+
     // Simulate tailoring process
     setTimeout(() => {
-      const tailoredText = `${resumeText}\n\n--- TAILORED ENHANCEMENTS ---\n\nBased on the job description, your resume has been enhanced with:\n- Relevant keywords from the job posting\n- Improved formatting and structure\n- Quantified achievements\n- Industry-specific terminology\n\n(This is a demo. In a real application, this would be processed by AI)`;
+      const tailoredText = `${sourceText}\n\n--- TAILORED ENHANCEMENTS ---\n\nBased on the job description, your resume has been enhanced with:\n- Relevant keywords from the job posting\n- Improved formatting and structure\n- Quantified achievements\n- Industry-specific terminology\n\n(This is a demo. In a real application, this would be processed by AI)`;
 
       setTailored(tailoredText);
       setResumeText(tailoredText);
