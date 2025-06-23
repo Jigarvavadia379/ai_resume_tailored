@@ -1,66 +1,57 @@
 import { useState } from 'react';
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
-
 export default function Home() {
   const [resumeText, setResumeText] = useState('');
   const [originalResumeText, setOriginalResumeText] = useState('');
   const [jdText, setJdText] = useState('');
-  const [score, setScore] = useState(null);
-  const [matchedKeywords, setMatchedKeywords] = useState([]);
+  const [score, setScore] = useState<number | null>(null);
+  const [matchedKeywords, setMatchedKeywords] = useState<string[]>([]);
   const [tailored, setTailored] = useState('');
   const [suggestions, setSuggestions] = useState('');
   const [loading, setLoading] = useState(false);
-  const [downloadUrl, setDownloadUrl] = useState(null);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
 
-  // Load PDF.js library
-   const loadPDFJS = () => {
-     return new Promise<typeof import('pdfjs-dist')>((resolve, reject) => {
-       const windowWithPDFJS = window as typeof window & {
-         pdfjsLib?: typeof import('pdfjs-dist');
-       };
-
-       if (windowWithPDFJS.pdfjsLib) {
-         resolve(windowWithPDFJS.pdfjsLib);
-         return;
-       }
-
-       const script = document.createElement('script');
-       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-       script.onload = () => {
-         if (windowWithPDFJS.pdfjsLib) {
-           windowWithPDFJS.pdfjsLib.GlobalWorkerOptions.workerSrc =
-             'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-           resolve(windowWithPDFJS.pdfjsLib);
-         } else {
-           reject(new Error('PDF.js failed to load'));
-         }
-       };
-       script.onerror = () => reject(new Error('Failed to load PDF.js script'));
-       document.head.appendChild(script);
-     });
-   };
+  const loadPDFJS = () => {
+    return new Promise<typeof import('pdfjs-dist')>((resolve, reject) => {
+      const windowWithPDFJS = window as typeof window & {
+        pdfjsLib?: typeof import('pdfjs-dist');
+      };
+      if (windowWithPDFJS.pdfjsLib) {
+        resolve(windowWithPDFJS.pdfjsLib);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.onload = () => {
+        if (windowWithPDFJS.pdfjsLib) {
+          windowWithPDFJS.pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          resolve(windowWithPDFJS.pdfjsLib);
+        } else {
+          reject(new Error('PDF.js failed to load'));
+        }
+      };
+      script.onerror = () => reject(new Error('Failed to load PDF.js script'));
+      document.head.appendChild(script);
+    });
+  };
 
   const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Loading PDF processor...');
-
       const pdfjsLib = await loadPDFJS();
-
       setUploadStatus('Processing PDF...');
-
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       const pdf = await loadingTask.promise;
       let text = '';
-
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
         const pageText = (content.items as TextItem[]).map((item) => item.str).join(' ');
         text += pageText + '\n';
       }
-
       setUploadStatus('PDF processed successfully!');
       return text.trim();
     } catch (error: unknown) {
@@ -74,23 +65,21 @@ export default function Home() {
   const extractTextFromDOCX = async (arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Processing DOCX...');
-      console.log('DOCX file size:', arrayBuffer.byteLength); // Use arrayBuffer to avoid unused variable error
-      // Since mammoth isn't available, we'll show a placeholder
+      // DOCX parsing is not available in this environment
       setUploadStatus('DOCX processing not available in this environment. Please convert to PDF or TXT.');
       throw new Error('DOCX processing not available');
-    } catch (error) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
       setUploadStatus('Failed to process DOCX. Please convert to PDF or TXT.');
-      throw error;
+      throw new Error(message);
     }
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
     setUploadStatus('');
     const ext = file.name.split('.').pop()?.toLowerCase();
-
     try {
       if (ext === 'pdf') {
         const buffer = await file.arrayBuffer();
@@ -108,9 +97,10 @@ export default function Home() {
       } else {
         setUploadStatus("Unsupported file type. Please upload a PDF or TXT file.");
       }
-    } catch (error: any) {
-      console.error('File processing error:', error);
-      setUploadStatus(`Error: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('File processing error:', message);
+      setUploadStatus(`Error: ${message}`);
     }
   };
 
@@ -119,23 +109,18 @@ export default function Home() {
       setUploadStatus('Please upload a resume and paste the job description.');
       return;
     }
-
     const jdWords = jdText
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/)
       .filter((word) => word.length > 2);
-
     const resumeWords = resumeText
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/)
       .filter((word) => word.length > 2);
-
-    // Simple keyword matching without Fuse.js
-    const matched = [];
+    const matched: string[] = [];
     let matchCount = 0;
-
     jdWords.forEach((word) => {
       if (resumeWords.includes(word)) {
         matchCount++;
@@ -144,7 +129,6 @@ export default function Home() {
         }
       }
     });
-
     const calculatedScore = jdWords.length > 0 ? Math.floor((matchCount / jdWords.length) * 100) : 0;
     setScore(calculatedScore);
     setMatchedKeywords(matched);
@@ -155,39 +139,27 @@ export default function Home() {
       setUploadStatus('Please upload a resume and paste the job description.');
       return;
     }
-
     setLoading(true);
     const sourceText = originalResumeText || resumeText;
-
     try {
-      // Real API call to your backend
       const res = await fetch('/api/suggest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ original: sourceText, jd: jdText }),
       });
-
       if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        console.error('Suggest error:', error);
-        setSuggestions('Something went wrong while generating suggestions.');
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg = errorData.message || 'Something went wrong while generating suggestions.';
+        setSuggestions(errorMsg);
         setLoading(false);
         return;
       }
-
       const data = await res.json();
       setSuggestions(data.suggestions || 'No suggestions available');
       setLoading(false);
-    } catch (error) {
-      console.error('API call failed:', error);
-      // Fallback to mock suggestions if API fails
-      setSuggestions(`Based on the job description, consider these improvements:
-
-1. Add relevant keywords that appear in the job posting
-2. Highlight specific technical skills mentioned in the JD
-3. Quantify your achievements with numbers and metrics
-4. Tailor your experience descriptions to match the job requirements
-5. Include industry-specific terminology from the job posting`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      setSuggestions(`Based on the job description, consider these improvements:\n\n1. Add relevant keywords that appear in the job posting\n2. Highlight specific technical skills mentioned in the JD\n3. Quantify your achievements with numbers and metrics\n4. Tailor your experience descriptions to match the job requirements\n5. Include industry-specific terminology from the job posting\n\n(API error: ${message})`);
       setLoading(false);
     }
   };
@@ -197,43 +169,33 @@ export default function Home() {
       setUploadStatus('Please upload a resume and paste the job description.');
       return;
     }
-
     setLoading(true);
     const sourceText = originalResumeText || resumeText;
-
     try {
-      // Real API call to your backend
       const res = await fetch('/api/tailor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ original: sourceText, jd: jdText }),
       });
-
       if (!res.ok) {
-        const error = await res.json().catch(() => ({}));
-        console.error('Tailor error:', error);
-        setTailored('Something went wrong while tailoring the resume.');
+        const errorData = await res.json().catch(() => ({}));
+        const errorMsg = errorData.message || 'Something went wrong while tailoring the resume.';
+        setTailored(errorMsg);
         setLoading(false);
         return;
       }
-
       const data = await res.json();
       const tailoredText = data.tailored || 'Something went wrong';
-
       setTailored(tailoredText);
       setResumeText(tailoredText);
-
       const blob = new Blob([tailoredText], { type: 'text/plain' });
       setDownloadUrl(URL.createObjectURL(blob));
       setLoading(false);
-    } catch (error) {
-      console.error('API call failed:', error);
-      // Fallback to mock tailoring if API fails
-      const tailoredText = `${sourceText}\n\n--- TAILORED ENHANCEMENTS ---\n\nBased on the job description, your resume has been enhanced with:\n- Relevant keywords from the job posting\n- Improved formatting and structure\n- Quantified achievements\n- Industry-specific terminology\n\n(This is a demo. In a real application, this would be processed by AI)`;
-
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      const tailoredText = `${sourceText}\n\n--- TAILORED ENHANCEMENTS ---\n\nBased on the job description, your resume has been enhanced with:\n- Relevant keywords from the job posting\n- Improved formatting and structure\n- Quantified achievements\n- Industry-specific terminology\n\n(This is a demo. In a real application, this would be processed by AI)\n\n(API error: ${message})`;
       setTailored(tailoredText);
       setResumeText(tailoredText);
-
       const blob = new Blob([tailoredText], { type: 'text/plain' });
       setDownloadUrl(URL.createObjectURL(blob));
       setLoading(false);
@@ -255,7 +217,6 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">✨ AI Resume Tailor</h1>
           <p className="text-gray-600">Upload your resume and tailor it to any job description</p>
         </div>
-
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
             <h2 className="text-lg font-semibold text-gray-700 mb-3">📄 Upload Resume</h2>
@@ -287,7 +248,6 @@ export default function Home() {
               </div>
             )}
           </div>
-
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
             <h2 className="text-lg font-semibold text-gray-700 mb-3">🔗 Job Description</h2>
             <textarea
@@ -299,7 +259,6 @@ export default function Home() {
             />
           </div>
         </div>
-
         <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
           <div className="text-center space-y-4">
             <div className="flex flex-wrap justify-center gap-3">
@@ -324,7 +283,6 @@ export default function Home() {
                 {loading ? '🔄 Tailoring...' : '🪄 Tailor My Resume'}
               </button>
             </div>
-
             {score !== null && (
               <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
                 <div className="text-2xl font-bold text-blue-600 mb-2">
@@ -341,7 +299,6 @@ export default function Home() {
                 )}
               </div>
             )}
-
             {suggestions && (
               <div className="bg-green-50 p-4 rounded-xl border border-green-200 text-left">
                 <h3 className="font-semibold text-green-800 mb-2">💡 Suggestions for Improvement:</h3>
@@ -352,7 +309,6 @@ export default function Home() {
             )}
           </div>
         </div>
-
         {tailored && (
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
             <h2 className="text-lg font-semibold text-gray-700 mb-4">🎯 Tailored Resume</h2>
@@ -371,7 +327,6 @@ export default function Home() {
             )}
           </div>
         )}
-
         {resumeText && (
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
             <h2 className="text-lg font-semibold text-gray-700 mb-4">📋 Current Resume Content</h2>
