@@ -23,7 +23,11 @@ export async function suggestEdits(original: string, jd: string): Promise<string
       }
     ],
   });
+
+  // Add return statement!
+  return chatCompletion.choices?.[0]?.message?.content || "No suggestions returned";
 }
+
 export async function tailorResume(original: string, jd: string): Promise<string> {
   const chatCompletion = await client.chatCompletion({
     provider: "novita",
@@ -48,5 +52,4 @@ export async function tailorResume(original: string, jd: string): Promise<string
   });
 
   return chatCompletion.choices?.[0]?.message?.content || "No tailored resume returned";
-
- }
+}
