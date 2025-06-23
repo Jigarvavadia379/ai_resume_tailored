@@ -1,24 +1,47 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabase } from '../../lib/supabase';
-import { suggestEdits } from '../../lib/huggingface';
+import { suggestEdits, tailorResume } from '../../lib/huggingface';
 
-export default async function handler(req, res) {
-  const { data: jobs } = await supabase
-    .from('suggest_jobs')
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { data: jobs, error } = await supabase
+    .from('llm_jobs')
     .select('*')
     .eq('status', 'pending');
+
+  if (error) return res.status(500).json({ error: 'Failed to fetch jobs' });
+
+  let processed = 0;
   for (const job of jobs) {
     try {
-      const suggestions = await suggestEdits(job.original, job.jd);
+      let result = '';
+      if (job.job_type === 'suggest') {
+        result = await suggestEdits(job.original_resume, job.job_description);
+      } else if (job.job_type === 'tailor') {
+        result = await tailorResume(job.original_resume, job.job_description);
+      } else {
+        throw new Error('Unknown job_type');
+      }
+
       await supabase
-        .from('suggest_jobs')
-        .update({ suggestions, status: 'complete', completed_at: new Date() })
+        .from('llm_jobs')
+        .update({
+          result,
+          status: 'complete',
+          updated_at: new Date(),
+          error_message: null,
+        })
         .eq('id', job.id);
+      processed++;
     } catch (err) {
       await supabase
-        .from('suggest_jobs')
-        .update({ status: 'error', error: String(err) })
+        .from('llm_jobs')
+        .update({
+          status: 'error',
+          error_message: err instanceof Error ? err.message : String(err),
+          updated_at: new Date(),
+        })
         .eq('id', job.id);
     }
   }
-  res.status(200).json({ processed: jobs.length });
+  return res.status(200).json({ processed });
 }
