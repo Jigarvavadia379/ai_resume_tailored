@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 
@@ -253,12 +254,13 @@ const pollJobStatus = async (
 
 
   const handleDownload = () => {
-    if (!downloadUrl) return;
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = 'tailored-resume.txt';
-    link.click();
-  };
+  if (!tailored) return;
+  const doc = new jsPDF();
+  // Split text to fit page width
+  const lines = doc.splitTextToSize(tailored, 180);
+  doc.text(lines, 10, 10);
+  doc.save('tailored-resume.pdf');
+};
 
   return (
     <main className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen px-4 py-10 sm:px-6 md:px-10">
