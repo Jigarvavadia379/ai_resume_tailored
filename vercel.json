@@ -2,5 +2,9 @@
   "crons": [{
     "path": "/api/process-jobs",
     "schedule": "*/5 * * * * *"
-  }]
+  },
+    {
+      "path": "/api/process-jobs",
+      "schedule": "*/5 * * * * *"
+    }]
 }
