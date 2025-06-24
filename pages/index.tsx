@@ -22,7 +22,7 @@ const pollJobStatus = async (
   onError: (msg: string) => void
 ) => {
   let attempts = 0;
-  const maxAttempts = 24; // (24 x 5s = 120s)
+  const maxAttempts = 30; // (24 x 2s = 120s)
   setProgress(0);
 
   const poll = async () => {
@@ -40,7 +40,7 @@ const pollJobStatus = async (
         setProgress(0);
         onError(data.error_message || "Job failed.");
       } else if (attempts < maxAttempts) {
-        setTimeout(poll, 5000);
+        setTimeout(poll, 2000);
       } else {
         setProgress(0);
         onError("Timed out waiting for job result.");
