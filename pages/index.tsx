@@ -267,7 +267,7 @@ const pollJobStatus = async (
     // Split the text into lines that fit the page width
     const lines = doc.splitTextToSize(tailored, doc.internal.pageSize.getWidth() - 2 * margin);
 
-    lines.forEach((line) => {
+    lines.forEach((line: string) => {
       if (y > pageHeight - margin) {
         doc.addPage();
         y = margin;
@@ -275,7 +275,6 @@ const pollJobStatus = async (
       doc.text(line, margin, y);
       y += lineHeight;
     });
-
     doc.save('tailored-resume.pdf');
   };
 
