@@ -23,12 +23,13 @@ export async function tailorResume(original: string, jd: string): Promise<string
   const chatCompletion = await client.chatCompletion({
     provider: "auto",
     model: "deepseek-ai/DeepSeek-R1-0528",
-    model: "deepseek-ai/DeepSeek-R1-0528",
     messages: [
       {
         role: "user",
         content: `You are a professional resume writer and ATS optimization expert.
-                  Rewrite the following resume to perfectly match the provided job description
+                  Rewrite the following resume to
+                  add the suggested bullet points based on job description
+                  do not remove the points already in the resume.
                   :\n\nJob Description:\n${jd}\n\nResume:\n${original}\n\nOutput:`
       }
     ],
