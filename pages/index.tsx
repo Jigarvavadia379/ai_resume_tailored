@@ -254,13 +254,30 @@ const pollJobStatus = async (
 
 
   const handleDownload = () => {
-  if (!tailored) return;
-  const doc = new jsPDF();
-  // Split text to fit page width
-  const lines = doc.splitTextToSize(tailored, 180);
-  doc.text(lines, 10, 10);
-  doc.save('tailored-resume.pdf');
-};
+    if (!tailored) return;
+    const doc = new jsPDF({
+      unit: "pt",
+      format: "a4",
+    });
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 40;
+    const lineHeight = 16;
+    let y = margin;
+
+    // Split the text into lines that fit the page width
+    const lines = doc.splitTextToSize(tailored, doc.internal.pageSize.getWidth() - 2 * margin);
+
+    lines.forEach((line) => {
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      doc.text(line, margin, y);
+      y += lineHeight;
+    });
+
+    doc.save('tailored-resume.pdf');
+  };
 
   return (
     <main className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen px-4 py-10 sm:px-6 md:px-10">
