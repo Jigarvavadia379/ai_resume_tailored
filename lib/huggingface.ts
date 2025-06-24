@@ -5,7 +5,7 @@ const client = new InferenceClient(process.env.HF_API_KEY);
 export async function suggestEdits(original: string, jd: string): Promise<string> {
   const chatCompletion = await client.chatCompletion({
     provider: "auto",
-    model: "mistralai/Mistral-7B-Instruct-v0.3",
+    model: "deepseek-ai/DeepSeek-R1-0528",
     messages: [
       {
         role: "user",
