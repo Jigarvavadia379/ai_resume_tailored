@@ -15,6 +15,7 @@
     "html2pdf.js": "^0.10.3",
     "mammoth": "^1.9.1",
     "next": "^15.3.4",
+    "node-fetch": "^3.3.2",
     "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
