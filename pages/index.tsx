@@ -431,4 +431,5 @@ const pollJobStatus = async (
           </div>
           </div>
         </main>
-        );}
+  );
+}
