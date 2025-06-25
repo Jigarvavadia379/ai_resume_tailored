@@ -1,10 +1,14 @@
 import { useState } from 'react';
+import Login from "../components/Login";
 import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 
-
 export default function Home() {
+const [user, setUser] = useState<any>(null);
+if (!user) {
+return <Login onLogin={setUser} />;
+}
   const [resumeText, setResumeText] = useState('');
   const [originalResumeText, setOriginalResumeText] = useState('');
   const [jdText, setJdText] = useState('');
@@ -418,9 +422,6 @@ const pollJobStatus = async (
                      {tailored}
                    </div>
              )}
-            <div className="bg-gray-50 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[400px] overflow-auto font-mono text-gray-800 border">
-              {tailored}
-            </div>
             {downloadUrl && (
                               <div className="text-center mt-4">
                                 <button
