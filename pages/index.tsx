@@ -3,10 +3,11 @@ import Login from "../components/Login";
 import type { User } from "@supabase/supabase-js";
 import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
+import { supabase } from '../lib/supabase';
 
 
 export default function Home() {
-const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [resumeText, setResumeText] = useState('');
   const [originalResumeText, setOriginalResumeText] = useState('');
   const [jdText, setJdText] = useState('');
@@ -17,50 +18,71 @@ const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(true); // new state
-  const [progress, setProgress] = useState(0); // Progress from 0 to 100
-  const [editMode, setEditMode] = useState(false); // new state
-if (!user) {
-return <Login onLogin={setUser} />;
-}
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [editMode, setEditMode] = useState(false);
 
-
-
-const pollJobStatus = async (
-  jobId: string,
-  onResult: (result: string) => void,
-  onError: (msg: string) => void
-) => {
-  let attempts = 0;
-  const maxAttempts = 30; // (24 x 2s = 120s)
-  setProgress(0);
-
-  const poll = async () => {
-    attempts++;
-    setProgress(Math.min(100, Math.floor((attempts / maxAttempts) * 100)));
-    try {
-      const res = await fetch(`/api/job-status?jobId=${jobId}`);
-      if (!res.ok) throw new Error("Failed to check job status");
-      const data = await res.json();
-      if (data.status === "complete") {
-        setProgress(100);
-        setTimeout(() => setProgress(0), 500);
-        onResult(data.result || 'No output');
-      } else if (data.status === "error") {
-        setProgress(0);
-        onError(data.error_message || "Job failed.");
-      } else if (attempts < maxAttempts) {
-        setTimeout(poll, 2000);
-      } else {
-        setProgress(0);
-        onError("Timed out waiting for job result.");
-      }
-    } catch  {
-      setProgress(0);
-    }
+  // ---- LOGOUT HANDLER ----
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    // Optionally clear everything else for privacy
+    setResumeText('');
+    setOriginalResumeText('');
+    setJdText('');
+    setScore(null);
+    setMatchedKeywords([]);
+    setTailored('');
+    setSuggestions('');
+    setLoading(false);
+    setDownloadUrl(null);
+    setUploadStatus('');
+    setShowSuggestions(true);
+    setProgress(0);
+    setEditMode(false);
   };
-  poll();
-};
+
+  // ---- LOGIN GATE ----
+  if (!user) {
+    return <Login onLogin={setUser} />;
+  }
+
+  // ---- POLL STATUS ----
+  const pollJobStatus = async (
+    jobId: string,
+    onResult: (result: string) => void,
+    onError: (msg: string) => void
+  ) => {
+    let attempts = 0;
+    const maxAttempts = 30;
+    setProgress(0);
+
+    const poll = async () => {
+      attempts++;
+      setProgress(Math.min(100, Math.floor((attempts / maxAttempts) * 100)));
+      try {
+        const res = await fetch(`/api/job-status?jobId=${jobId}`);
+        if (!res.ok) throw new Error("Failed to check job status");
+        const data = await res.json();
+        if (data.status === "complete") {
+          setProgress(100);
+          setTimeout(() => setProgress(0), 500);
+          onResult(data.result || 'No output');
+        } else if (data.status === "error") {
+          setProgress(0);
+          onError(data.error_message || "Job failed.");
+        } else if (attempts < maxAttempts) {
+          setTimeout(poll, 2000);
+        } else {
+          setProgress(0);
+          onError("Timed out waiting for job result.");
+        }
+      } catch {
+        setProgress(0);
+      }
+    };
+    poll();
+  };
 
   const loadPDFJS = () => {
     return new Promise<typeof import('pdfjs-dist')>((resolve, reject) => {
@@ -112,14 +134,12 @@ const pollJobStatus = async (
   const extractTextFromDOCX = async (arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Processing DOCX...');
-      console.log('DOCX file size:', arrayBuffer.byteLength); // prevents unused var error
       setUploadStatus('DOCX processing not available in this environment. Please convert to PDF or TXT.');
       throw new Error('DOCX processing not available');
     } catch {
       setUploadStatus('Failed to process DOCX. Please convert to PDF or TXT.');
     }
   };
-
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -199,23 +219,18 @@ const pollJobStatus = async (
       if (!res.ok) {
         setSuggestions('Could not create job.');
         setLoading(false); setProgress(0);
-
         return;
       }
       const { jobId } = await res.json();
       pollJobStatus(jobId,
-        (result) => { setSuggestions(result); setLoading(false); setProgress(0);
- },
-        (msg) => { setSuggestions(msg); setLoading(false); setProgress(0);
- }
+        (result) => { setSuggestions(result); setLoading(false); setProgress(0); },
+        (msg) => { setSuggestions(msg); setLoading(false); setProgress(0); }
       );
     } catch {
       setSuggestions('Error submitting job');
       setLoading(false); setProgress(0);
-
     }
   };
-
 
   const handleTailor = async () => {
     if (!resumeText?.trim() || !jdText?.trim()) {
@@ -238,7 +253,6 @@ const pollJobStatus = async (
       if (!res.ok) {
         setTailored('Could not create job.');
         setLoading(false); setProgress(0);
-
         return;
       }
       const { jobId } = await res.json();
@@ -249,23 +263,19 @@ const pollJobStatus = async (
           const blob = new Blob([result], { type: 'text/plain' });
           setDownloadUrl(URL.createObjectURL(blob));
           setLoading(false); setProgress(0);
-
         },
-        (msg) => { setTailored(msg); setLoading(false); setProgress(0);
- }
+        (msg) => { setTailored(msg); setLoading(false); setProgress(0); }
       );
     } catch  {
       setTailored('Error submitting job');
       setLoading(false); setProgress(0);
-
     }
   };
-
 
   const handleDownload = () => {
     if (!tailored) return;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
-    doc.setFont('helvetica', 'normal'); // or 'times', 'courier'
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 40;
@@ -286,6 +296,25 @@ const pollJobStatus = async (
 
   return (
     <main className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen px-4 py-10 sm:px-6 md:px-10">
+          {/* HEADER BAR */}
+          <div className="flex justify-between items-center max-w-6xl mx-auto mb-8">
+            <span className="font-bold text-xl text-gray-800">
+              AI Resume Tailor
+            </span>
+            <div className="flex items-center gap-4">
+              {user && (
+                <>
+                  <span className="text-gray-600 text-sm">{user.email}</span>
+                  <button
+                    className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">✨ AI Resume Tailor</h1>
