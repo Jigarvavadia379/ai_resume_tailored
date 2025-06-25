@@ -7,9 +7,6 @@ import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 export default function Home() {
 const [user, setUser] = useState<User | null>(null);
-if (!user) {
-return <Login onLogin={setUser} />;
-}
   const [resumeText, setResumeText] = useState('');
   const [originalResumeText, setOriginalResumeText] = useState('');
   const [jdText, setJdText] = useState('');
@@ -23,6 +20,10 @@ return <Login onLogin={setUser} />;
   const [showSuggestions, setShowSuggestions] = useState(true); // new state
   const [progress, setProgress] = useState(0); // Progress from 0 to 100
   const [editMode, setEditMode] = useState(false); // new state
+if (!user) {
+return <Login onLogin={setUser} />;
+}
+
 
 
 const pollJobStatus = async (

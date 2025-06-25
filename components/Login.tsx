@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
-import type { User } from "@supabase/-js";
+import type { User } from "@supabase/supabase-js";
 
 type LoginProps = {
   onLogin: (user: User) => void;
@@ -48,8 +48,32 @@ export default function Login({ onLogin }: LoginProps) {
   }
 
   return (
-    <div>
-      {/* ... UI as before ... */}
-    </div>
+    <form onSubmit={handleSubmit} className="max-w-sm mx-auto mt-12 bg-white shadow-lg p-8 rounded-xl space-y-5">
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Login / Register</h2>
+      <input
+        type="email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        required
+        placeholder="Email"
+        className="w-full p-3 border border-gray-300 rounded-lg"
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+        required
+        placeholder="Password"
+        className="w-full p-3 border border-gray-300 rounded-lg"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-semibold"
+      >
+        {loading ? "Please wait..." : "Login / Register"}
+      </button>
+      {error && <div className="text-red-700 bg-red-100 p-2 rounded">{error}</div>}
+    </form>
   );
 }
