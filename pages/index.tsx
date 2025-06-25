@@ -153,8 +153,7 @@ export default function Home() {
         setResumeText(text || '');
         setOriginalResumeText(text || '');
       } else if (ext === 'docx') {
-        const arrayBuffer = await file.arrayBuffer();
-        await extractTextFromDOCX(arrayBuffer);
+        await extractTextFromDOCX(await file.arrayBuffer());
       } else if (ext === 'txt') {
         const text = await file.text();
         setResumeText(text || '');
