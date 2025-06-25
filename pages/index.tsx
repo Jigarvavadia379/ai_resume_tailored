@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import Login from "../components/Login";
+import type { User } from "@supabase/supabase-js";
 import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 
 export default function Home() {
-const [user, setUser] = useState<any>(null);
+const [user, setUser] = useState<User | null>(null);
 if (!user) {
 return <Login onLogin={setUser} />;
 }
