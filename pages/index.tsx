@@ -397,17 +397,17 @@ const pollJobStatus = async (
           </div>
         </div>
         {tailored && (
-           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-             <div className="flex justify-between items-center mb-4">
-               <h2 className="text-lg font-semibold text-gray-700">🎯 Tailored Resume</h2>
-               <button
-                 className="px-4 py-1 bg-blue-100 text-blue-700 rounded font-medium hover:bg-blue-200"
-                 onClick={() => setEditMode(e => !e)}
-               >
-                 {editMode ? "Save" : "Edit"}
-               </button>
-             </div>
-             {editMode ? (
+          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">🎯 Tailored Resume</h2>
+            <button
+                             className="px-4 py-1 bg-blue-100 text-blue-700 rounded font-medium hover:bg-blue-200"
+                             onClick={() => setEditMode(e => !e)}
+            >
+                {editMode ? "Save" : "Edit"}
+            </button>
+            </div>
+            {editMode ? (
                    <textarea
                      value={tailored}
                      onChange={e => setTailored(e.target.value)}
@@ -417,19 +417,23 @@ const pollJobStatus = async (
                    <div className="bg-gray-50 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[400px] overflow-auto font-mono text-gray-800 border">
                      {tailored}
                    </div>
-                 )}
+             )}
+            <div className="bg-gray-50 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[400px] overflow-auto font-mono text-gray-800 border">
+              {tailored}
+            </div>
             {downloadUrl && (
-                  <div className="text-center mt-4">
-                    <button
-                      onClick={handleDownload}
-                      className="bg-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-purple-700 transition-all transform hover:scale-105"
-                    >
-                      ⬇️ Download Tailored Resume
-                    </button>
-                  </div>
-                )}
+                              <div className="text-center mt-4">
+                                <button
+                                  onClick={handleDownload}
+                                  className="bg-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-purple-700 transition-all transform hover:scale-105"
+                                >
+                                  ⬇️ Download Tailored Resume
+                                </button>
+                              </div>
+            )}
           </div>
-          </div>
-        </main>
+        )}
+      </div>
+    </main>
   );
 }
