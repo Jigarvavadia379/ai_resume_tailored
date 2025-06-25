@@ -15,7 +15,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(true); // new state
   const [progress, setProgress] = useState(0); // Progress from 0 to 100
+  const [editMode, setEditMode] = useState(false); // new state
+
 
 const pollJobStatus = async (
   jobId: string,
@@ -255,18 +258,14 @@ const pollJobStatus = async (
 
   const handleDownload = () => {
     if (!tailored) return;
-    const doc = new jsPDF({
-      unit: "pt",
-      format: "a4",
-    });
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    doc.setFont('helvetica', 'normal'); // or 'times', 'courier'
+    doc.setFontSize(12);
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 40;
     const lineHeight = 16;
     let y = margin;
-
-    // Split the text into lines that fit the page width
     const lines = doc.splitTextToSize(tailored, doc.internal.pageSize.getWidth() - 2 * margin);
-
     lines.forEach((line: string) => {
       if (y > pageHeight - margin) {
         doc.addPage();
@@ -277,6 +276,7 @@ const pollJobStatus = async (
     });
     doc.save('tailored-resume.pdf');
   };
+
 
   return (
     <main className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen px-4 py-10 sm:px-6 md:px-10">
@@ -380,43 +380,55 @@ const pollJobStatus = async (
                     </div>
                   </div>
                 )}
-            {suggestions && (
-              <div className="bg-green-50 p-4 rounded-xl border border-green-200 text-left">
-                <h3 className="font-semibold text-green-800 mb-2">💡 Suggestions for Improvement:</h3>
-                <div className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {suggestions}
-                </div>
-              </div>
-            )}
+            <div className="bg-green-50 p-4 rounded-xl border border-green-200 text-left">
+              <button
+                className="mb-2 text-green-800 font-semibold underline"
+                onClick={() => setShowSuggestions(s => !s)}
+              >
+                {showSuggestions ? "Hide Suggestions" : "Show Suggestions"}
+              </button>
+              {showSuggestions && (
+                <>
+                  <h3 className="font-semibold text-green-800 mb-2">💡 Suggestions for Improvement:</h3>
+                  <div className="text-sm text-gray-700 whitespace-pre-wrap">{suggestions}</div>
+                </>
+              )}
+            </div>
           </div>
         </div>
         {tailored && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">🎯 Tailored Resume</h2>
-            <div className="bg-gray-50 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[400px] overflow-auto font-mono text-gray-800 border">
-              {tailored}
-            </div>
+           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+             <div className="flex justify-between items-center mb-4">
+               <h2 className="text-lg font-semibold text-gray-700">🎯 Tailored Resume</h2>
+               <button
+                 className="px-4 py-1 bg-blue-100 text-blue-700 rounded font-medium hover:bg-blue-200"
+                 onClick={() => setEditMode(e => !e)}
+               >
+                 {editMode ? "Save" : "Edit"}
+               </button>
+             </div>
+             {editMode ? (
+                   <textarea
+                     value={tailored}
+                     onChange={e => setTailored(e.target.value)}
+                     className="bg-gray-50 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[400px] overflow-auto font-mono text-gray-800 border w-full min-h-[300px]"
+                   />
+                 ) : (
+                   <div className="bg-gray-50 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[400px] overflow-auto font-mono text-gray-800 border">
+                     {tailored}
+                   </div>
+                 )}
             {downloadUrl && (
-              <div className="text-center mt-4">
-                <button
-                  onClick={handleDownload}
-                  className="bg-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-purple-700 transition-all transform hover:scale-105"
-                >
-                  ⬇️ Download Tailored Resume
-                </button>
-              </div>
-            )}
+                  <div className="text-center mt-4">
+                    <button
+                      onClick={handleDownload}
+                      className="bg-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-purple-700 transition-all transform hover:scale-105"
+                    >
+                      ⬇️ Download Tailored Resume
+                    </button>
+                  </div>
+                )}
           </div>
-        )}
-        {resumeText && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">📋 Current Resume Content</h2>
-            <div className="bg-gray-50 p-4 rounded-xl text-sm whitespace-pre-wrap max-h-[300px] overflow-auto text-gray-700 border">
-              {resumeText.substring(0, 1000)}
-              {resumeText.length > 1000 && '...\n\n[Content truncated for display]'}
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );
