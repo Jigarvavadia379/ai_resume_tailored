@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Login from "../components/Login";
-import type { User, Session } from "@supabase/supabase-js";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
@@ -12,7 +12,7 @@ export default function Home() {
   useEffect(() => {
       // Get current session on load
       const getSession = async () => {
-        const { data, error } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
         if (data?.session?.user) {
           setUser(data.session.user);
         }
