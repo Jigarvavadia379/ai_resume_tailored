@@ -331,7 +331,9 @@ const pollJobStatus = async (
     <main className="bg-gradient-to-br from-white-100 to-white-80 min-h-screen px-4 py-10 sm:px-6 md:px-10">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
-          <Image src="/logo.png" alt="Logo" width={80} height={80} />
+            <div className="flex flex-col items-center mb-4">
+              <Image src="/logo.png" alt="Logo" width={80} height={80} />
+              </div>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">My Career Canvas</h1>
           <p className="text-gray-600">Upload your resume and tailor it to any job description</p>
         </div>
