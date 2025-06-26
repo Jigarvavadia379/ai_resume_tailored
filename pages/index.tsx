@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Login from "../components/Login";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
+import Image from 'next/image';
 import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
@@ -327,10 +328,11 @@ const pollJobStatus = async (
         onClick={handleLogout}>Logout
       </button>
     </header>
-    <main className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen px-4 py-10 sm:px-6 md:px-10">
+    <main className="bg-gradient-to-br from-white-100 to-white-80 min-h-screen px-4 py-10 sm:px-6 md:px-10">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">✨ AI Resume Tailor</h1>
+          <Image src="/logo.png" alt="Logo" width={80} height={80} />
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">My Career Canvas</h1>
           <p className="text-gray-600">Upload your resume and tailor it to any job description</p>
         </div>
         <div className="grid md:grid-cols-2 gap-6">
@@ -382,7 +384,7 @@ const pollJobStatus = async (
                 onClick={handleScore}
                 className="bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-gray-900 transition-all transform hover:scale-105"
               >
-                🔍 Check & Score Resume
+                Check & Score Resume
               </button>
               <button
                 onClick={handleSuggest}
@@ -447,7 +449,7 @@ const pollJobStatus = async (
         {tailored && (
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-700 mb-4">🎯 Tailored Resume</h2>
+            <h2 className="text-lg font-semibold text-gray-700 mb-4"> Tailored Resume</h2>
             <button
                              className="px-4 py-1 bg-blue-100 text-blue-700 rounded font-medium hover:bg-blue-200"
                              onClick={() => setEditMode(e => !e)}
@@ -472,7 +474,7 @@ const pollJobStatus = async (
                                   onClick={handleDownload}
                                   className="bg-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-purple-700 transition-all transform hover:scale-105"
                                 >
-                                  ⬇️ Download Tailored Resume
+                                  Download Tailored Resume
                                 </button>
                               </div>
             )}

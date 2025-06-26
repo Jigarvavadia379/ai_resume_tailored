@@ -54,6 +54,7 @@ export default function Login({ onLogin }: LoginProps) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-sm mx-auto mt-12 bg-white shadow-lg p-8 rounded-xl space-y-6">
+      <Image src="/logo.png" alt="Logo" width={80} height={80} />
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
         {mode === "login" ? "Login" : mode === "register" ? "Register" : "Forgot Password"}
       </h2>
