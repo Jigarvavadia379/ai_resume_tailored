@@ -1,5 +1,3 @@
-// pages/reset-password.tsx
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabase";
@@ -9,17 +7,21 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState("");
-  const [tokenChecked, setTokenChecked] = useState(false);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   useEffect(() => {
-    // Supabase will automatically set the session from the token in the URL
-    // If user is not logged in after landing here, token is missing/invalid
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data?.user) {
-        setMessage("Invalid or expired password reset link.");
-      }
-      setTokenChecked(true);
-    });
+    // Supabase sets session automatically on hash, but we can ensure it's loaded
+    const checkSession = async () => {
+      // Wait a tick for Supabase to process the URL hash
+      setTimeout(async () => {
+        const { data } = await supabase.auth.getUser();
+        if (!data?.user) {
+          setMessage("Auth session missing! Please use the reset link sent to your email.");
+        }
+        setSessionChecked(true);
+      }, 300);
+    };
+    checkSession();
   }, []);
 
   const handleReset = async (e: React.FormEvent) => {
@@ -34,9 +36,7 @@ export default function ResetPasswordPage() {
       setMessage(error.message);
     } else {
       setMessage("Password reset! You can now log in.");
-      setTimeout(() => {
-        router.push("/");
-      }, 2000);
+      setTimeout(() => router.push("/"), 2000);
     }
   };
 
@@ -44,7 +44,7 @@ export default function ResetPasswordPage() {
     <main className="min-h-screen flex items-center justify-center bg-gray-50">
       <form onSubmit={handleReset} className="bg-white p-8 rounded shadow-lg max-w-md w-full space-y-6">
         <h1 className="text-2xl font-bold text-center">Reset Password</h1>
-        {!tokenChecked ? (
+        {!sessionChecked ? (
           <p>Checking your reset link…</p>
         ) : (
           <>
@@ -67,6 +67,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-semibold"
+              disabled={!sessionChecked}
             >
               Set New Password
             </button>
