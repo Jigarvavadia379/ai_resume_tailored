@@ -21,27 +21,16 @@ const [user, setUser] = useState<User | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(true); // new state
   const [progress, setProgress] = useState(0); // Progress from 0 to 100
   const [editMode, setEditMode] = useState(false); // new state
-if (!user) {
-return <Login onLogin={setUser} />;
-}
+  // If user not logged in, show login page
+  if (!user) {
+    return <Login onLogin={setUser} />;
+  }
 
-{user && (
-  <header className="flex items-center justify-between py-3 px-4 bg-white shadow rounded-xl max-w-2xl mx-auto mt-6 mb-4">
-    <div className="text-sm text-gray-600">
-      Logged in as <span className="font-medium">{user.email}</span>
-    </div>
-    <button
-      className="text-blue-600 hover:underline text-sm font-medium"
-      onClick={async () => {
-        await supabase.auth.signOut();
-        setUser(null);
-      }}
-    >
-      Logout
-    </button>
-  </header>
-)}
-
+  // Logout handler
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
 
 const pollJobStatus = async (
   jobId: string,
@@ -302,6 +291,17 @@ const pollJobStatus = async (
 
 
   return (
+
+  {/* User Header & Logout */}
+    <header className="flex items-center justify-between py-3 px-4 bg-white shadow rounded-xl max-w-2xl mx-auto mt-6 mb-4">
+      <div className="text-sm text-gray-600">
+        Logged in as <span className="font-medium">{user.email}</span>
+      </div>
+      <button
+        className="text-blue-600 hover:underline text-sm font-medium"
+        onClick={handleLogout}>Logout
+      </button>
+    </header>
     <main className="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen px-4 py-10 sm:px-6 md:px-10">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
