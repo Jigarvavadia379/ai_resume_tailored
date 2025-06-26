@@ -1,26 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Login from "../components/Login";
-import type { User } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabase"; // if not already imported
+import type { User, Session } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabase";
 import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 
 export default function Home() {
-const [user, setUser] = useState<User | null>(null);
-  const [resumeText, setResumeText] = useState('');
-  const [originalResumeText, setOriginalResumeText] = useState('');
-  const [jdText, setJdText] = useState('');
-  const [score, setScore] = useState<number | null>(null);
-  const [matchedKeywords, setMatchedKeywords] = useState<string[]>([]);
-  const [tailored, setTailored] = useState('');
-  const [suggestions, setSuggestions] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-  const [uploadStatus, setUploadStatus] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(true); // new state
-  const [progress, setProgress] = useState(0); // Progress from 0 to 100
-  const [editMode, setEditMode] = useState(false); // new state
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+      // Get current session on load
+      const getSession = async () => {
+        const { data, error } = await supabase.auth.getSession();
+        if (data?.session?.user) {
+          setUser(data.session.user);
+        }
+      };
+      getSession();
+
+      // 2. Listen for auth changes
+      const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+        } else {
+          setUser(null);
+        }
+      });
+
+      // Cleanup listener on unmount
+      return () => {
+        authListener?.subscription.unsubscribe();
+      };
+    }, []);
+
+    const [resumeText, setResumeText] = useState('');
+    const [originalResumeText, setOriginalResumeText] = useState('');
+    const [jdText, setJdText] = useState('');
+    const [score, setScore] = useState<number | null>(null);
+    const [matchedKeywords, setMatchedKeywords] = useState<string[]>([]);
+    const [tailored, setTailored] = useState('');
+    const [suggestions, setSuggestions] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+    const [uploadStatus, setUploadStatus] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(true); // new state
+    const [progress, setProgress] = useState(0); // Progress from 0 to 100
+    const [editMode, setEditMode] = useState(false); // new state
+
   // If user not logged in, show login page
   if (!user) {
     return <Login onLogin={setUser} />;
