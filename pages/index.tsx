@@ -291,8 +291,6 @@ const pollJobStatus = async (
 
 
   return (
-
-  {/* User Header & Logout */}
     <header className="flex items-center justify-between py-3 px-4 bg-white shadow rounded-xl max-w-2xl mx-auto mt-6 mb-4">
       <div className="text-sm text-gray-600">
         Logged in as <span className="font-medium">{user.email}</span>
