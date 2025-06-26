@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from 'next/image';
 import { supabase } from "../lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
