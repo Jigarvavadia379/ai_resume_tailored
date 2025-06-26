@@ -18,7 +18,7 @@ export async function suggestEdits(original: string, jd: string): Promise<string
                   \n${original}
 
                   Task: Compare the job description and the resume.
-                  List 10 specific, actionable suggestions that will help make this resume a much better fit for the job.
+                  List 7 specific, actionable suggestions that will help make this resume a much better fit for the job.
                   Each suggestion should be focused, clear, and based on a gap, missing skill, or improvement area you see.
                   Start each suggestion with a bullet point.`
       }

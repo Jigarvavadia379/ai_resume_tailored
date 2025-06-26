@@ -1,0 +1,10 @@
+{
+  "welcome": "Bem-vindo",
+  "logout": "Sair",
+  "subscription": "Assinatura",
+  "login": "Entrar",
+  "email": "E-mail",
+  "password": "Senha",
+  "forgot_password": "Esqueceu a senha?",
+  "reset_password": "Redefinir senha"
+}

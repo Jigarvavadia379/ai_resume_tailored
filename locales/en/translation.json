@@ -1,0 +1,10 @@
+{
+  "welcome": "Welcome",
+  "logout": "Logout",
+  "subscription": "Subscription",
+  "login": "Login",
+  "email": "Email",
+  "password": "Password",
+  "forgot_password": "Forgot Password?",
+  "reset_password": "Reset Password"
+}

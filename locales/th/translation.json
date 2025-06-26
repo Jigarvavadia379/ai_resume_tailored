@@ -1,0 +1,10 @@
+{
+  "welcome": "ยินดีต้อนรับ",
+  "logout": "ออกจากระบบ",
+  "subscription": "การสมัครสมาชิก",
+  "login": "เข้าสู่ระบบ",
+  "email": "อีเมล",
+  "password": "รหัสผ่าน",
+  "forgot_password": "ลืมรหัสผ่าน?",
+  "reset_password": "รีเซ็ตรหัสผ่าน"
+}

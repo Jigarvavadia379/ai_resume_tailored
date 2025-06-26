@@ -1,0 +1,10 @@
+{
+  "welcome": "स्वागत है",
+  "logout": "लॉगआउट",
+  "subscription": "सदस्यता",
+  "login": "लॉगिन करें",
+  "email": "ईमेल",
+  "password": "पासवर्ड",
+  "forgot_password": "पासवर्ड भूल गए?",
+  "reset_password": "पासवर्ड रीसेट करें"
+}

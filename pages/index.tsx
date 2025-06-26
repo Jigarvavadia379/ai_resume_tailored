@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import Login from "../components/Login";
+import Header from "../components/Header";
+import { useTranslation } from 'react-i18next';
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 import Image from 'next/image';
@@ -8,6 +10,7 @@ import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 
 export default function Home() {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -325,7 +328,7 @@ const pollJobStatus = async (
       </div>
       <button
         className="text-blue-600 hover:underline text-sm font-medium"
-        onClick={handleLogout}>Logout
+        onClick={handleLogout}>{t('logout')}
       </button>
     </header>
     <main className="bg-gradient-to-br from-white-100 to-white-80 min-h-screen px-4 py-10 sm:px-6 md:px-10">
