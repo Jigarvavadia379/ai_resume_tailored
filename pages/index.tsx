@@ -109,7 +109,7 @@ export default function Home() {
     });
   };
 
-  const extractTextFromPDF = async (arrayBuffer: ArrayBuffer) => {
+  const extractTextFromPDF = async (_arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Loading PDF processor...');
       const pdfjsLib = await loadPDFJS();
@@ -131,7 +131,7 @@ export default function Home() {
     }
   };
 
-  const extractTextFromDOCX = async (arrayBuffer: ArrayBuffer) => {
+  const extractTextFromDOCX = async (_arrayBuffer: ArrayBuffer) => {
     try {
       setUploadStatus('Processing DOCX...');
       setUploadStatus('DOCX processing not available in this environment. Please convert to PDF or TXT.');
