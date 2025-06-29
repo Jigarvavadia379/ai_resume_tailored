@@ -31,9 +31,12 @@ export default function Header({ user, handleLogout }: HeaderProps) {
 
   return (
     <header className="flex items-center justify-between py-3 px-6 bg-white shadow rounded-xl max-w-4xl mx-auto mt-6 mb-4">
+      <div className="text-sm text-gray-600">
+        Logged in as <span className="font-medium">{user.email}</span>
+      </div>
       <div className="flex items-center gap-3">
         <Image src="/logo.png" alt="Logo" width={40} height={40} className="rounded" />
-        <span className="font-bold text-lg text-gray-800">Your SaaS</span>
+        <span className="font-bold text-lg text-gray-800">My Carrer Canvas</span>
       </div>
       <div className="flex items-center gap-4">
         {/* Language Selector */}
