@@ -322,15 +322,7 @@ const pollJobStatus = async (
 
 
   return (<>
-    <header className="flex items-center justify-between py-3 px-4 bg-white shadow rounded-xl max-w-2xl mx-auto mt-6 mb-4">
-      <div className="text-sm text-gray-600">
-        Logged in as <span className="font-medium">{user.email}</span>
-      </div>
-      <button
-        className="text-blue-600 hover:underline text-sm font-medium"
-        onClick={handleLogout}>{t('logout')}
-      </button>
-    </header>
+<Header user={user} handleLogout={handleLogout} />
     <main className="bg-gradient-to-br from-white-100 to-white-80 min-h-screen px-4 py-10 sm:px-6 md:px-10">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
