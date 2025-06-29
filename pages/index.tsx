@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Login from "../components/Login";
 import { useTranslation } from 'react-i18next';
 import type { User } from "@supabase/supabase-js";
-//import Header from "../components/Header";
+import Header from "../components/Header";
 import { supabase } from "../lib/supabase";
 import Image from 'next/image';
 import jsPDF from "jspdf";
