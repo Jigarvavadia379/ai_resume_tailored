@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import Login from "../components/Login";
 import { useTranslation } from 'react-i18next';
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
+import { supabase } from "../lib/supabase";
 import Image from 'next/image';
 import jsPDF from "jspdf";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
@@ -322,6 +322,15 @@ const pollJobStatus = async (
 
 
   return (<>
+    <header className="flex items-center justify-between py-3 px-4 bg-white shadow rounded-xl max-w-2xl mx-auto mt-6 mb-4">
+      <div className="text-sm text-gray-600">
+        Logged in as <span className="font-medium">{user.email}</span>
+      </div>
+      <button
+        className="text-blue-600 hover:underline text-sm font-medium"
+        onClick={handleLogout}>{t('logout')}
+      </button>
+    </header>
     <main className="bg-gradient-to-br from-white-100 to-white-80 min-h-screen px-4 py-10 sm:px-6 md:px-10">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
