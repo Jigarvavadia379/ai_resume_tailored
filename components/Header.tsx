@@ -18,10 +18,11 @@ export default function Header({ handleLogout }: { handleLogout: () => void }) {
   const { t, i18n } = useTranslation();
   const [language, setLanguage] = useState(i18n.language || "en");
 
-  const changeLanguage = (lng) => {
+  const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
     setLanguage(lng);
   };
+
 
   return (
     <header className="flex items-center justify-between py-3 px-6 bg-white shadow rounded-xl max-w-4xl mx-auto mt-6 mb-4">
