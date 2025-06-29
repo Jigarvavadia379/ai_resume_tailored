@@ -14,7 +14,7 @@ const languages = [
   { code: "th", label: "🇹🇭 Thai" },
 ];
 
-export default function Header({ handleLogout }) {
+export default function Header({ handleLogout }: { handleLogout: () => void }) {
   const { t, i18n } = useTranslation();
   const [language, setLanguage] = useState(i18n.language || "en");
 
