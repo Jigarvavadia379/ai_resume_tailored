@@ -10,7 +10,6 @@ import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 
 
 export default function Home() {
-  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
