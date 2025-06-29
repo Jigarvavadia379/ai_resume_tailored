@@ -15,7 +15,7 @@ const languages = [
 ];
 
 type HeaderProps = {
-  user: { email: User }; // Use your actual User type if you have it
+  user: { email: text }; // Use your actual User type if you have it
   handleLogout: () => void;
 };
 
