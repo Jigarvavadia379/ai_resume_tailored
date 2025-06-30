@@ -16,7 +16,7 @@ import { useRouter } from "next/router";
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const user = supabase.auth.user();
-  const { hasQuota, loading, error, checkQuota, decrementQuota } = useQuota(user?.id);
+  const {loading, checkQuota, decrementQuota } = useQuota(user?.id);
   const router = useRouter();
   useEffect(() => {
       // Get current session on load
