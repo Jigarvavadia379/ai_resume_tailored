@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-  const {loading, checkQuota, decrementQuota } = useQuota(user?.id);
+  const {checkQuota, decrementQuota } = useQuota(user?.id);
   const router = useRouter();
   useEffect(() => {
       // Get current session on load
