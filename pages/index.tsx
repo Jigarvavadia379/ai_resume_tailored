@@ -27,7 +27,7 @@ export default function Home() {
             .from("user_profiles")
                  .upsert([
                    { id: data.session.user.id, resumes_left: 1, subscription_plan: "none" }
-                 ], { onConflict: ['id'] });
+                 ], { onConflict: 'id' });
         }
       };
       getSession();
