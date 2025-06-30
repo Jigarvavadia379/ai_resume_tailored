@@ -15,17 +15,18 @@ export default function Subscription() {
 
   useEffect(() => {
     const check = async () => {
-      const user = supabase.auth.user();
+      const { data } = await supabase.auth.getSession();
+      const user = data?.session?.user;
       if (!user) {
         router.replace("/login");
         return;
       }
-      const { data } = await supabase
+      const { data: profile } = await supabase
         .from("user_profiles")
         .select("resumes_left, subscription_plan")
         .eq("id", user.id)
         .single();
-      if (data && data.subscription_plan !== "none" && data.resumes_left > 0) {
+      if (profile && profile.subscription_plan !== "none" && profile.resumes_left > 0) {
         router.replace("/"); // Already subscribed, go home
       }
     };
@@ -34,7 +35,8 @@ export default function Subscription() {
 
   const handleFakeSubscribe = async () => {
     setLoading(true);
-    const user = supabase.auth.user();
+    const { data } = await supabase.auth.getSession();
+    const user = data?.session?.user;
     const selectedPlan = PLANS.find((plan) => plan.value === selected);
     if (!user || !selectedPlan) return;
     await supabase

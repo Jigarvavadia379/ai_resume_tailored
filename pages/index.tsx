@@ -21,14 +21,17 @@ export default function Home() {
       // Get current session on load
       const getSession = async () => {
         const { data } = await supabase.auth.getSession();
-        if (data?.session?.user) {
-          setUser(data.session.user);
-          await supabase
-            .from("user_profiles")
-                 .upsert([
-                   { id: data.session.user.id, resumes_left: 1, subscription_plan: "none" }
-                 ], { onConflict: 'id' });
+        const user = data?.session?.user;
+        if (!user) {
+          router.replace("/login");
+          return;
         }
+        setUser(user);
+        await supabase
+          .from("user_profiles")
+               .upsert([
+                 { id: user.id, resumes_left: 1, subscription_plan: "none" }
+               ], { onConflict: 'id' });
       };
       getSession();
 
