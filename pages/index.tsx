@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import Login from "../components/Login";
-import type { User } from "@supabase/supabase-js";
-import Header from "../components/Header";
-import { supabase } from "../lib/supabase";
 import Image from 'next/image';
-import jsPDF from "jspdf";
+
+import type { User } from "@supabase/supabase-js";
 import type { TextItem } from 'pdfjs-dist/types/src/display/api';
+
+import jsPDF from "jspdf";
+import { supabase } from "../lib/supabase";
+
+import Header from "../components/Header";
+import Login from "../components/Login";
+
 
 
 export default function Home() {

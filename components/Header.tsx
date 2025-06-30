@@ -1,7 +1,10 @@
+import type { User } from "@supabase/supabase-js";
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from "react";
 import { useTranslation } from 'react-i18next';
+
+
 
 const languages = [
   { code: "en", label: "🇺🇸 English" },
