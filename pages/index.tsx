@@ -10,17 +10,25 @@ import { supabase } from "../lib/supabase";
 import Header from "../components/Header";
 import Login from "../components/Login";
 
-
+import { useQuota } from "../hooks/useQuota";
+import { useRouter } from "next/router";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
-
+  const user = supabase.auth.user();
+  const { hasQuota, loading, error, checkQuota, decrementQuota } = useQuota(user?.id);
+  const router = useRouter();
   useEffect(() => {
       // Get current session on load
       const getSession = async () => {
         const { data } = await supabase.auth.getSession();
         if (data?.session?.user) {
           setUser(data.session.user);
+          await supabase
+            .from("user_profiles")
+                 .upsert([
+                   { id: data.session.user.id, resumes_left: 1, subscription_plan: "none" }
+                 ], { onConflict: ['id'] });
         }
       };
       getSession();
@@ -218,12 +226,20 @@ const pollJobStatus = async (
   };
 
   const handleSuggest = async () => {
+
+    const ok = await checkQuota();
+    if (!ok) {
+      setUploadStatus("No quota left. Please subscribe to a plan!");
+      router.replace("/subscription");
+      return;
+    }
     if (!resumeText?.trim() || !jdText?.trim()) {
       setUploadStatus('Please upload a resume and paste the job description.');
       return;
     }
     setLoading(true);
     setSuggestions('');
+    await decrementQuota();
     const sourceText = originalResumeText || resumeText;
     try {
       const res = await fetch('/api/start-job', {
@@ -257,12 +273,19 @@ const pollJobStatus = async (
 
 
   const handleTailor = async () => {
+  const ok = await checkQuota();
+    if (!ok) {
+      setUploadStatus("No quota left. Please subscribe to a plan!");
+      router.replace("/subscription");
+      return;
+    }
     if (!resumeText?.trim() || !jdText?.trim()) {
       setUploadStatus('Please upload a resume and paste the job description.');
       return;
     }
     setLoading(true);
     setTailored('');
+    await decrementQuota();
     const sourceText = originalResumeText || resumeText;
     try {
       const res = await fetch('/api/start-job', {
